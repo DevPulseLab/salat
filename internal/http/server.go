@@ -16,7 +16,7 @@ func Run() error {
 
 	// Init router
 	router := gin.Default()
-	InitializeRoutes(router, dbconn.DBSystem)
+	InitializeRoutes(router, dbconn.DBSystem, configuration)
 
 	return router.Run()
 }

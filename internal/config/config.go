@@ -11,6 +11,9 @@ type Config struct {
 	Database struct {
 		Dsn string `yaml:"dsn"`
 	} `yaml:"database"`
+	Jwt struct {
+		Secret string `yaml:"secret"`
+	} `yaml:"jwt"`
 }
 
 func New() *Config {

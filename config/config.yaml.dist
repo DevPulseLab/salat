@@ -1,2 +1,5 @@
 database:
   dsn: "file::memory:?cache=shared&_foreign_keys=on"
+
+jwt:
+  secret: jwt_secret
