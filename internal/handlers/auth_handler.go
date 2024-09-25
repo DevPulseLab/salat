@@ -35,7 +35,7 @@ func (handler *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusBadRequest, gin.H{"message": "User registerd"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "User registered"})
 }
 
 func (handler *AuthHandler) Login(ctx *gin.Context) {
