@@ -1,27 +1,9 @@
 <script setup>
 import useAppStore from '@/stores/appStore'
-
+import Message from 'primevue/message'
 const { appMessage } = useAppStore()
 </script>
 
 <template>
-    <div class="app-message" :class="appMessage.type" v-if="appMessage !== null" v-html="appMessage.message"></div>
+  <Message v-if="appMessage !== null" class="my-4" :severity="appMessage.type">{{ appMessage.message }}</Message>
 </template>
-
-<style scoped>
-.app-message {
-    padding: 10px;
-}
-
-.error {
-  background-color: #fac9c9;
-}
-
-.warning {
-  background-color: #fafabc;
-}
-
-.success {
-  background-color: #c1fabc;
-}
-</style>

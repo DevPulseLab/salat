@@ -12,7 +12,7 @@ const useAppStore = () => {
                 type = 'success'
                 break;
             case 400:
-                type = 'warning'
+                type = 'warn'
                 break;
         }
 

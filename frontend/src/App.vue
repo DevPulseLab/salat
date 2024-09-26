@@ -1,27 +1,28 @@
 <script setup>
-import http from '@/http'
-import { onMounted, ref } from 'vue'
-
+import { ref } from 'vue'
+import Menubar from 'primevue/menubar'
 import AppMessage from '@/components/AppMessage.vue'
-
-const pong = ref('...')
-
-onMounted(async () => {
-  const response = await http.get('/api/ping')
-  if (response.status !== 200) {
-    pong.value = ''
-    return
-  }
-  pong.value = response.data.ping
-})
+import routes from '@/routes.js'
 </script>
 
 <template>
-  <AppMessage />
+  <div class="container mt-10 mx-5 md:mx-auto">
+    <h1 class="text-3xl font-bold mb-4 text-center">
+      SalatBar App
+    </h1>
 
-  <RouterView />
+    <Menubar :model="routes" class="mb-4">
+      <template #item="{ item, props }">
+        <router-link v-slot="{ href, navigate }" :to="{ name: item.name }">
+          <a :href="href" v-bind="props.action" @click="navigate">
+            <span class="ml-2">{{ item.meta.label }}</span>
+          </a>
+        </router-link>
+      </template>
+    </Menubar>
 
-  <hr />
+    <AppMessage />
 
-  <div>Server: {{ pong }}</div>
+    <RouterView />
+  </div>
 </template>

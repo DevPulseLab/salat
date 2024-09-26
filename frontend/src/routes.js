@@ -7,6 +7,7 @@ export default [
         path: '/',
         component: HomeView,
         meta: {
+            label: 'Login',
             requiresAuth: false
         },
     },
@@ -15,6 +16,7 @@ export default [
         path: '/register',
         component: RegisterView,
         meta: {
+            label: 'Register',
             requiresAuth: false
         },
     },
