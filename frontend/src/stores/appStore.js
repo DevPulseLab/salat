@@ -5,7 +5,6 @@ let appMessageTimeout = null
 
 const useAppStore = () => {
     const setAppMessage = (statusCode, message, hideInMs = 4000) => {
-
         let type = 'error'
         switch (statusCode) {
             case 200:

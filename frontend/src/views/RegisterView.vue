@@ -1,16 +1,18 @@
 <script setup>
 import {ref} from 'vue'
-import http from '@/http'
+import {useRouter} from 'vue-router'
+import useAppStore from '@/stores/appStore'
+import useUserService from '@/services/userService'
+
 import InputGroup from 'primevue/inputgroup'
 import InputGroupAddon from 'primevue/inputgroupaddon'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
-import {useRouter} from 'vue-router'
-import useAppStore from '@/stores/appStore'
 
 const appStore = useAppStore()
+const userService = useUserService()
 const router = useRouter()
 
 const defaultRegisterForm = () => {
@@ -34,23 +36,18 @@ const register = async () => {
     return
   }
 
-  const response = await http.post('/api/register', {
-    username: registerForm.value.username,
-    password: registerForm.value.password
-  })
-
-  if (response.status !== 200) {
+  const response = await userService.register(registerForm.value.username, registerForm.value.password)
+  if (!response.success) {
     return
   }
 
-  appStore.setAppMessage(200, response.data.message, 1500)
   registerForm.value = defaultRegisterForm()
+  appStore.setAppMessage(200, response.message, 1500)
 
   window.setTimeout(() => {
     router.replace({ name: 'home' })
   }, 2000)
 }
-
 </script>
 
 <template>

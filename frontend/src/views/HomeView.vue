@@ -1,28 +1,24 @@
 <script setup>
-import http from '@/http'
 import { ref } from 'vue'
+import useAppStore from '@/stores/appStore'
+import useUserService from '@/services/userService'
+
 import InputGroup from 'primevue/inputgroup'
 import InputGroupAddon from 'primevue/inputgroupaddon'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
-import useUserStore from '@/stores/userStore'
-import useAppStore from '@/stores/appStore'
 
 const appStore = useAppStore()
-const authStore = useUserStore()
+const userService = useUserService()
 
 const username = ref('')
 const password = ref('')
 
 const login = async () => {
-  const response = await http.post('/api/login', {
-    username: username.value,
-    password: password.value
-  })
-
-  if (response.status !== 200) {
+  const responseSuccess = await userService.login(username.value, password.value)
+  if (!responseSuccess) {
     password.value = ''
     return
   }
@@ -30,7 +26,6 @@ const login = async () => {
   username.value = ''
   password.value = ''
 
-  authStore.setUserToken(response.data.token)
   appStore.setAppMessage(200, 'Login success')
 }
 </script>

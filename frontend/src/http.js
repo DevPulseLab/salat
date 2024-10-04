@@ -3,7 +3,8 @@ import useUserStore from '@/stores/userStore'
 import useAppStore from '@/stores/appStore'
 
 const appStore = useAppStore()
-const authStore = useUserStore()
+const userStore = useUserStore()
+
 const http = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     headers: {
@@ -23,7 +24,7 @@ const handleError = (error) => {
 }
 
 http.interceptors.request.use((config) => {
-    const user = authStore.getUser()
+    const user = userStore.getUser()
     if (user.token !== null) {
         config.headers['Auth-Token'] = user.token;
     }
