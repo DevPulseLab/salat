@@ -16,7 +16,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{DB: db}
 }
 
-func (repo *UserRepository) RegisterUser(username, password string) error {
+func (repo *UserRepository) RegisterUser(username, password, role string) error {
 	var user models.User
 	if err := repo.DB.Where("username = ?", username).First(&user).Error; err == nil {
 		return errors.New("user already exists")
@@ -30,16 +30,17 @@ func (repo *UserRepository) RegisterUser(username, password string) error {
 	newUser := models.User{
 		Username: username,
 		Password: string(hashedPass),
+		Role:     role,
 	}
 
 	return repo.DB.Create(&newUser).Error
 }
 
-func (repo *UserRepository) AuthenticateUser(username, password string) error {
+func (repo *UserRepository) AuthenticateUser(username, password string) (string, error) {
 	var user models.User
 	if err := repo.DB.Where("username = ?", username).First(&user).Error; err != nil {
-		return errors.New("user not found")
+		return "", errors.New("user not found")
 	}
 
-	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	return user.Role, bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 }
