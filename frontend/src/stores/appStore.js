@@ -13,6 +13,10 @@ const useAppStore = () => {
             case 400:
                 type = 'warn'
                 break;
+            case 404:
+                type = 'warn'
+                message = message ?? 'Content not found'
+                break;
         }
 
         appMessage.value = { type, message }

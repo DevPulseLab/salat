@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import useAppStore from '@/stores/appStore'
+import { useRouter } from 'vue-router'
 import useUserService from '@/services/userService'
 
 import InputGroup from 'primevue/inputgroup'
@@ -11,6 +12,7 @@ import Button from 'primevue/button'
 import Card from 'primevue/card'
 
 const appStore = useAppStore()
+const router = useRouter()
 const userService = useUserService()
 
 const username = ref('')
@@ -27,6 +29,7 @@ const login = async () => {
   password.value = ''
 
   appStore.setAppMessage(200, 'Login success')
+  router.replace('/user/dashboard')
 }
 </script>
 

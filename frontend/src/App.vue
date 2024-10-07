@@ -1,8 +1,7 @@
 <script setup>
-import { ref } from 'vue'
 import Menubar from 'primevue/menubar'
 import AppMessage from '@/components/AppMessage.vue'
-import routes from '@/routes.js'
+import { getRoutes } from '@/routes.js'
 </script>
 
 <template>
@@ -11,7 +10,7 @@ import routes from '@/routes.js'
       SalatBar App
     </h1>
 
-    <Menubar :model="routes" class="mb-4">
+    <Menubar :model="getRoutes" class="mb-4">
       <template #item="{ item, props }">
         <router-link v-slot="{ href, navigate }" :to="{ name: item.name }">
           <a :href="href" v-bind="props.action" @click="navigate">

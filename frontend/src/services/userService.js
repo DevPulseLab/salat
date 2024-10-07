@@ -11,10 +11,20 @@ const useUserService = () => {
         if (response.status !== 200) {
             return false
         }
+
         const { setUserToken } = useUserStore()
         setUserToken(response.data.token)
 
         return true
+    }
+
+    const logout = async () => {
+        const response = await http.post('/api/logout')
+
+        const { setUserToken } = useUserStore()
+        setUserToken(null)
+
+        return response.status === 200
     }
 
     const register = async (username, password) => {
@@ -31,6 +41,7 @@ const useUserService = () => {
 
     return {
         login,
+        logout,
         register,
     }
 }

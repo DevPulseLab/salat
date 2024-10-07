@@ -19,7 +19,10 @@ const handleError = (error) => {
         return null
     }
 
-    appStore.setAppMessage(error.response.code, error.response.data.error)
+    if (error.response.status !== undefined) {
+        appStore.setAppMessage(error.response.status, error.response.data.error)
+    }
+
     return error.response
 }
 

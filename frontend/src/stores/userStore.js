@@ -1,11 +1,10 @@
 import {ref} from 'vue'
 
 const user = ref({
-    token: null
+    token: localStorage.getItem('token') ?? null
 })
 
 const useUserStore = () => {
-
     const getUser = () => {
         return user.value
     }
@@ -14,9 +13,21 @@ const useUserStore = () => {
         user.value = {
             token
         }
+
+        if (token === null) {
+            localStorage.removeItem('token')
+            return
+        }
+
+        localStorage.setItem('token', token)
+    }
+
+    const isAuthenticated = () => {
+        return user.value.token !== null
     }
 
     return {
+        isAuthenticated,
         getUser,
         setUserToken
     }
