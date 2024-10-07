@@ -15,7 +15,7 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	jwtMiddleware := middlewares.NewJwtMiddleware(config)
 	roleMiddleware := middlewares.NewRoleMiddleware()
 	authHandler := handlers.NewAuthHandler(db, config)
-	userHandler := handlers.NewUserHandler()
+	userHandler := handlers.NewUserHandler(db)
 
 	router.GET("/api/ping", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, map[string]string{"ping": "pong"})
@@ -24,5 +24,5 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	router.POST("/api/register", authHandler.Register)
 	router.POST("/api/login", authHandler.Login)
 
-	router.GET("/api/users", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin, models.RoleUser), userHandler.GetUserList)
+	router.GET("/api/users/list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userHandler.GetUserList)
 }

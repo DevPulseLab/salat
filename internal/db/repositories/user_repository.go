@@ -44,3 +44,11 @@ func (repo *UserRepository) AuthenticateUser(username, password string) (string,
 
 	return user.Role, bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 }
+
+func (repo *UserRepository) GetAllUsers() []models.User {
+	var users []models.User
+
+	repo.DB.Find(&users)
+
+	return users
+}
