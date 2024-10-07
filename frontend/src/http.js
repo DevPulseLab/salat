@@ -26,7 +26,7 @@ const handleError = (error) => {
 http.interceptors.request.use((config) => {
     const user = userStore.getUser()
     if (user.token !== null) {
-        config.headers['Auth-Token'] = user.token;
+        config.headers['Authorization'] = 'Bearer ' + user.token;
     }
 
     return config
