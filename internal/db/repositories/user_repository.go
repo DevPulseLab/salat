@@ -52,3 +52,12 @@ func (repo *UserRepository) GetAllUsers() []models.User {
 
 	return users
 }
+
+func (repo *UserRepository) GetIdByUsername(username string) (uint, error) {
+	var user models.User
+	if err := repo.DB.Where("username = ?", username).First(&user).Error; err != nil {
+		return 0, errors.New("user not found")
+	}
+
+	return user.ID, nil
+}

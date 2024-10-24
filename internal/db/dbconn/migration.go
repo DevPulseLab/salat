@@ -7,6 +7,7 @@ import (
 
 func RunMigrate(db *gorm.DB) {
 	err := db.AutoMigrate(
+		&models.Calendar{},
 		&models.User{},
 	)
 	if err != nil {
