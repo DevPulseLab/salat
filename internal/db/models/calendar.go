@@ -8,7 +8,7 @@ import (
 
 type Calendar struct {
 	gorm.Model
-	UserId uint      `gorm:"not null" json:"user_id"`
-	Date   time.Time `gorm:"not null" json:"date"`
+	UserId uint      `gorm:"not null;uniqueIndex:unq_usr_date" json:"user_id"`
+	Date   time.Time `gorm:"not null;uniqueIndex:unq_usr_date" json:"date"`
 	Status string    `gorm:"type:varchar(100);not null" json:"status"`
 }

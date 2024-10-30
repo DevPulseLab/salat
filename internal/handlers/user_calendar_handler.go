@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/DevPulseLab/salat/internal/db/repositories"
@@ -35,9 +36,14 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 		return
 	}
 
-	handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate, enum.Approved)
+	ok, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate, enum.Approved)
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data saved"})
+	if ok {
+		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data saved"})
+	} else {
+		log.Println(errors)
+		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data was not saved"})
+	}
 }
 
 func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
