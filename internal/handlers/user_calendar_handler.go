@@ -65,5 +65,5 @@ func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
 		calendarDtos = append(calendarDtos, calendarDto)
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"users": calendarDtos})
+	ctx.JSON(http.StatusOK, gin.H{"calendarEntries": calendarDtos})
 }
