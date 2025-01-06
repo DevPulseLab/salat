@@ -40,6 +40,8 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 	status := enum.Approved
 	if isDateInCurrentWeek(form.StartDate) {
 		status = enum.Reserved
+	} else if form.StartDate.Before(time.Now()) {
+		status = enum.Rejected
 	}
 
 	ok, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate, status)
