@@ -37,10 +37,10 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 	return true, nil
 }
 
-func (repo *CalendarRepository) GetCalendarEntriesByUserId(userId uint) []models.Calendar {
+func (repo *CalendarRepository) GetCalendarEntriesByUserId(userId uint, startDate time.Time, endDate time.Time) []models.Calendar {
 	var calendars []models.Calendar
 
-	repo.DB.Where("user_id = ?", userId).Find(&calendars)
+	repo.DB.Where("user_id = ? AND date >= ? AND date <= ?", userId, startDate, endDate).Find(&calendars)
 
 	return calendars
 }
