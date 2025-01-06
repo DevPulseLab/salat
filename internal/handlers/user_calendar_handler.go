@@ -37,7 +37,12 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 		return
 	}
 
-	ok, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate, enum.Approved)
+	status := enum.Approved
+	if isDateInCurrentWeek(form.StartDate) {
+		status = enum.Reserved
+	}
+
+	ok, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate, status)
 
 	if ok {
 		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data saved"})
@@ -45,6 +50,12 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 		log.Println(errors)
 		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data was not saved"})
 	}
+}
+
+func isDateInCurrentWeek(t time.Time) bool {
+	year, week := time.Now().ISOWeek()
+	targetYear, targetWeek := t.ISOWeek()
+	return year == targetYear && week == targetWeek
 }
 
 func (handler *UserCalendarHandler) AllUserList(ctx *gin.Context) {
