@@ -52,7 +52,7 @@ func (handler *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	expirationTime := time.Now().Add(15 * time.Minute)
+	expirationTime := time.Now().Truncate(24 * time.Hour).Add(24*time.Hour - time.Second)
 	claims := &dto.Claims{
 		Username: form.Username,
 		Role:     userRole,
