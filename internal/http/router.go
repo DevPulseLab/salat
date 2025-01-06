@@ -28,6 +28,7 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	router.POST("/api/login", authHandler.Login)
 
 	router.GET("/api/users/list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userHandler.GetUserList)
+	router.GET("/api/user/calendar/all-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userCalendarHandler.AllUserList)
 
 	router.POST("/api/user/calendar/add", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.Add)
 	router.GET("/api/user/calendar/current-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.CurrentUserList)

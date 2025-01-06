@@ -47,6 +47,35 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 	}
 }
 
+func (handler *UserCalendarHandler) AllUserList(ctx *gin.Context) {
+	startDate, err := getStartDateFromRequest(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format. Use YYYY-MM-DD."})
+		return
+	}
+
+	endDate, err := getEndDateFromRequest(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format. Use YYYY-MM-DD."})
+		return
+	}
+
+	calendars := handler.CalendarRepo.GetCalendarEntriesForAllUsers(startDate, endDate)
+
+	calendarDtos := []dto.Calendar{}
+	for _, calendar := range calendars {
+		calendarDto := dto.Calendar{
+			Id:     calendar.ID,
+			UserId: calendar.ID,
+			Date:   calendar.Date,
+			Status: calendar.Status,
+		}
+		calendarDtos = append(calendarDtos, calendarDto)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"calendarEntries": calendarDtos})
+}
+
 func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
 	userId, err := handler.UserRepo.GetIdByUsername(ctx.GetString("username"))
 	if err != nil {
@@ -72,6 +101,7 @@ func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
 	for _, calendar := range calendars {
 		calendarDto := dto.Calendar{
 			Id:     calendar.ID,
+			UserId: userId,
 			Date:   calendar.Date,
 			Status: calendar.Status,
 		}

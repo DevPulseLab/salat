@@ -44,3 +44,11 @@ func (repo *CalendarRepository) GetCalendarEntriesByUserId(userId uint, startDat
 
 	return calendars
 }
+
+func (repo *CalendarRepository) GetCalendarEntriesForAllUsers(startDate time.Time, endDate time.Time) []models.Calendar {
+	var calendars []models.Calendar
+
+	repo.DB.Where("date >= ? AND date <= ?", startDate, endDate).Find(&calendars)
+
+	return calendars
+}
