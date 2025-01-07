@@ -50,7 +50,7 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data saved"})
 	} else {
 		log.Println(errors)
-		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data was not saved"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Calendar data was not saved"})
 	}
 }
 
