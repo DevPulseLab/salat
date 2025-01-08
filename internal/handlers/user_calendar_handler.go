@@ -79,7 +79,7 @@ func (handler *UserCalendarHandler) AllUserList(ctx *gin.Context) {
 	for _, calendar := range calendars {
 		calendarDto := dto.Calendar{
 			Id:     calendar.ID,
-			UserId: calendar.ID,
+			UserId: calendar.UserId,
 			Date:   calendar.Date,
 			Status: calendar.Status,
 		}
