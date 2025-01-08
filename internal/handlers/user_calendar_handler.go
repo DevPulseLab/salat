@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"log"
+	"fmt"
+	"math"
 	"net/http"
 	"time"
 
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/dto"
-	"github.com/DevPulseLab/salat/internal/enum"
 	"github.com/DevPulseLab/salat/internal/forms"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -37,27 +37,16 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 		return
 	}
 
-	status := enum.Approved
-	if isDateInCurrentWeek(form.StartDate) {
-		status = enum.Reserved
-	} else if form.StartDate.Before(time.Now()) {
-		status = enum.Rejected
-	}
-
-	ok, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate, status)
-
+	ok, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate)
 	if ok {
 		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data saved"})
 	} else {
-		log.Println(errors)
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Calendar data was not saved"})
+		if len(errors) == int(math.Ceil(form.EndDate.Sub(form.StartDate).Hours()/24)) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Calendar data was not saved"})
+		} else {
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Not all calendar data was saved"})
+		}
 	}
-}
-
-func isDateInCurrentWeek(t time.Time) bool {
-	year, week := time.Now().ISOWeek()
-	targetYear, targetWeek := t.ISOWeek()
-	return year == targetYear && week == targetWeek
 }
 
 func (handler *UserCalendarHandler) AllUserList(ctx *gin.Context) {
@@ -105,6 +94,7 @@ func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
 	endDate, err := getEndDateFromRequest(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format. Use YYYY-MM-DD."})
+		fmt.Println(err)
 		return
 	}
 
