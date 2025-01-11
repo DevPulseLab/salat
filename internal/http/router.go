@@ -32,4 +32,5 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 
 	router.POST("/api/user/calendar/add", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.Add)
 	router.GET("/api/user/calendar/current-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.CurrentUserList)
+	router.POST("/api/user/calendar/remove-for-current-user", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.RemoveEntryForCurrentUser)
 }

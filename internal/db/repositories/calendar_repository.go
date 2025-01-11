@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"time"
 
 	"github.com/DevPulseLab/salat/internal/db/models"
@@ -14,6 +15,20 @@ type CalendarRepository struct {
 
 func NewCalendarRepository(db *gorm.DB) *CalendarRepository {
 	return &CalendarRepository{DB: db}
+}
+
+func (repo *CalendarRepository) GetByIdForUserId(id, userId uint) (models.Calendar, error) {
+	var calendarEntry models.Calendar
+	result := repo.DB.Where("id = ? AND deleted_at IS NULL", id).First(&calendarEntry)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return calendarEntry, result.Error
+	}
+
+	return calendarEntry, nil
+}
+
+func (repo *CalendarRepository) Remove(model *models.Calendar) {
+	repo.DB.Delete(&model)
 }
 
 func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate time.Time) (bool, []error) {
