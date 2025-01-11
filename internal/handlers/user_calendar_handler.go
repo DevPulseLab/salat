@@ -129,17 +129,33 @@ func (handler *UserCalendarHandler) RemoveEntryForCurrentUser(ctx *gin.Context) 
 	}
 
 	calendarEntry, err := handler.CalendarRepo.GetByIdForUserId(form.CalendarEntryId, userId)
-	if calendarEntry.Date.Before(time.Now()) || handler.DateHelper.IsDateInCurrentWeek(calendarEntry.Date) {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Can not remove past entries"})
-		return
-	}
-
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Calendar entry not found"})
 		return
 	}
 
+	if calendarEntry.Date.Before(time.Now()) || handler.DateHelper.IsDateInCurrentWeek(calendarEntry.Date) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Can not remove past or this week entries"})
+		return
+	}
+
 	handler.CalendarRepo.Remove(&calendarEntry)
+
+	ctx.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+func (handler *UserCalendarHandler) ChangeEntryStatus(ctx *gin.Context) {
+	var form forms.ChangeCalendarEntryForm
+	if err := ctx.ShouldBindJSON(&form); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := handler.CalendarRepo.ChangeEntryStatus(form.CalendarEntryId, form.NewStatus)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Calendar entry not changed"})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})
 }

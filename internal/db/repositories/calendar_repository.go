@@ -21,7 +21,7 @@ func NewCalendarRepository(db *gorm.DB, dh *helper.DateHelper) *CalendarReposito
 
 func (repo *CalendarRepository) GetByIdForUserId(id, userId uint) (models.Calendar, error) {
 	var calendarEntry models.Calendar
-	result := repo.DB.Where("id = ? AND deleted_at IS NULL", id).First(&calendarEntry)
+	result := repo.DB.Where("id = ? AND user_id = ? AND deleted_at IS NULL", id, userId).First(&calendarEntry)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return calendarEntry, result.Error
 	}
@@ -31,6 +31,19 @@ func (repo *CalendarRepository) GetByIdForUserId(id, userId uint) (models.Calend
 
 func (repo *CalendarRepository) Remove(model *models.Calendar) {
 	repo.DB.Delete(&model)
+}
+
+func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) error {
+	var calendarEntry models.Calendar
+	result := repo.DB.Where("id = ? AND deleted_at IS NULL", modelId).First(&calendarEntry)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return result.Error
+	}
+
+	calendarEntry.Status = status
+	result = repo.DB.Save(&calendarEntry)
+
+	return result.Error
 }
 
 func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate time.Time) (bool, []error) {
