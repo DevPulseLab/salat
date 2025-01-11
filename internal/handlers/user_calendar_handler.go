@@ -8,6 +8,7 @@ import (
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/forms"
+	"github.com/DevPulseLab/salat/internal/helper"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -15,12 +16,14 @@ import (
 type UserCalendarHandler struct {
 	CalendarRepo *repositories.CalendarRepository
 	UserRepo     *repositories.UserRepository
+	DateHelper   *helper.DateHelper
 }
 
 func NewUserCalendarHandler(db *gorm.DB) *UserCalendarHandler {
-	calendarRepo := repositories.NewCalendarRepository(db)
+	dateHelper := helper.NewDateHelper()
+	calendarRepo := repositories.NewCalendarRepository(db, dateHelper)
 	userRepo := repositories.NewUserRepository(db)
-	return &UserCalendarHandler{calendarRepo, userRepo}
+	return &UserCalendarHandler{calendarRepo, userRepo, dateHelper}
 }
 
 func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
@@ -126,6 +129,10 @@ func (handler *UserCalendarHandler) RemoveEntryForCurrentUser(ctx *gin.Context) 
 	}
 
 	calendarEntry, err := handler.CalendarRepo.GetByIdForUserId(form.CalendarEntryId, userId)
+	if calendarEntry.Date.Before(time.Now()) || handler.DateHelper.IsDateInCurrentWeek(calendarEntry.Date) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Can not remove past entries"})
+		return
+	}
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Calendar entry not found"})

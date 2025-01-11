@@ -6,15 +6,17 @@ import (
 
 	"github.com/DevPulseLab/salat/internal/db/models"
 	"github.com/DevPulseLab/salat/internal/enum"
+	"github.com/DevPulseLab/salat/internal/helper"
 	"gorm.io/gorm"
 )
 
 type CalendarRepository struct {
-	DB *gorm.DB
+	DB         *gorm.DB
+	dateHelper *helper.DateHelper
 }
 
-func NewCalendarRepository(db *gorm.DB) *CalendarRepository {
-	return &CalendarRepository{DB: db}
+func NewCalendarRepository(db *gorm.DB, dh *helper.DateHelper) *CalendarRepository {
+	return &CalendarRepository{DB: db, dateHelper: dh}
 }
 
 func (repo *CalendarRepository) GetByIdForUserId(id, userId uint) (models.Calendar, error) {
@@ -40,9 +42,9 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 		status := enum.Approved
 		if currDate.Before(time.Now()) {
 			status = enum.Rejected
-		} else if isDateInCurrentWeek(currDate) {
+		} else if repo.dateHelper.IsDateInCurrentWeek(currDate) {
 			status = enum.Reserved
-		} else if isDateNextWeekAndNowBeforeFriday(currDate) {
+		} else if repo.dateHelper.IsDateNextWeekAndNowBeforeFriday(currDate) {
 			status = enum.Reserved
 		}
 
@@ -75,25 +77,4 @@ func (repo *CalendarRepository) GetCalendarEntriesForAllUsers(startDate, endDate
 	repo.DB.Where("date >= ? AND date <= ?", startDate, endDate).Find(&calendars)
 
 	return calendars
-}
-
-func isDateInCurrentWeek(t time.Time) bool {
-	year, week := time.Now().ISOWeek()
-	targetYear, targetWeek := t.ISOWeek()
-	return year == targetYear && week == targetWeek
-}
-
-func isDateNextWeekAndNowBeforeFriday(t time.Time) bool {
-	fridayThisWeek := getFridayOfWeek(time.Now())
-
-	year, week := time.Now().AddDate(0, 0, 7).ISOWeek()
-	targetYear, targetWeek := t.ISOWeek()
-	return year == targetYear && week == targetWeek && time.Now().After(fridayThisWeek)
-}
-
-func getFridayOfWeek(inputDate time.Time) time.Time {
-	weekday := inputDate.Weekday()
-	daysUntilFriday := (time.Friday - weekday + 7) % 7
-	friday := inputDate.AddDate(0, 0, int(daysUntilFriday))
-	return time.Date(friday.Year(), friday.Month(), friday.Day(), 12, 0, 0, 0, friday.Location())
 }
