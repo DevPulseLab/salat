@@ -46,12 +46,18 @@ func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) e
 	return result.Error
 }
 
-func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate time.Time) (bool, []error) {
+func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate time.Time) ([]models.Calendar, []error) {
 	currDate := startDate
 
 	errors := []error{}
+	addedDays := []models.Calendar{}
 
 	for endDate.Sub(currDate).Hours() > 0 {
+		if repo.dateHelper.IsWeekend(currDate) {
+			currDate = currDate.AddDate(0, 0, 1)
+			continue
+		}
+
 		status := enum.Approved
 		if currDate.Before(time.Now()) {
 			status = enum.Rejected
@@ -61,19 +67,22 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 			status = enum.Reserved
 		}
 
-		insertErr := repo.DB.Create(&models.Calendar{UserId: userId, Date: currDate, Status: string(status)}).Error
+		calendarModel := models.Calendar{UserId: userId, Date: currDate, Status: string(status)}
+		insertErr := repo.DB.Create(&calendarModel).Error
 		if insertErr != nil {
 			errors = append(errors, insertErr)
+		} else {
+			addedDays = append(addedDays, calendarModel)
 		}
 
 		currDate = currDate.AddDate(0, 0, 1)
 	}
 
 	if len(errors) > 0 {
-		return false, errors
+		return addedDays, errors
 	}
 
-	return true, nil
+	return addedDays, nil
 }
 
 func (repo *CalendarRepository) GetCalendarEntriesByUserId(userId uint, startDate, endDate time.Time) []models.Calendar {

@@ -27,3 +27,8 @@ func (helper *DateHelper) getFridayOfWeek(inputDate time.Time) time.Time {
 	monday := inputDate.AddDate(0, 0, -mondayOffset) // Get the Monday of the current week
 	return monday.AddDate(0, 0, 4)
 }
+
+func (helper *DateHelper) IsWeekend(inputDate time.Time) bool {
+	weekday := inputDate.Weekday()
+	return weekday == time.Saturday || weekday == time.Sunday
+}

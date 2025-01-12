@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"math"
 	"net/http"
 	"time"
 
+	"github.com/DevPulseLab/salat/internal/db/models"
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/forms"
@@ -39,16 +39,21 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 		return
 	}
 
-	ok, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate)
-	if ok {
-		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data saved"})
-	} else {
-		if len(errors) == int(math.Ceil(form.EndDate.Sub(form.StartDate).Hours()/24)) {
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Calendar data was not saved"})
-		} else {
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Not all calendar data was saved"})
-		}
+	addedCalendarModels, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate)
+	if len(errors) == 0 {
+		calendarDtos := convertCalendarModelsToDto(addedCalendarModels)
+
+		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data saved", "calendarEntries": calendarDtos})
+		return
 	}
+
+	if len(errors) != 0 && len(addedCalendarModels) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Calendar data was not saved"})
+		return
+	}
+
+	calendarDtos := convertCalendarModelsToDto(addedCalendarModels)
+	ctx.JSON(http.StatusBadRequest, gin.H{"message": "Not all calendar data was saved", "calendarEntries": calendarDtos})
 }
 
 func (handler *UserCalendarHandler) AllUserList(ctx *gin.Context) {
@@ -66,16 +71,7 @@ func (handler *UserCalendarHandler) AllUserList(ctx *gin.Context) {
 
 	calendars := handler.CalendarRepo.GetCalendarEntriesForAllUsers(startDate, endDate)
 
-	calendarDtos := []dto.Calendar{}
-	for _, calendar := range calendars {
-		calendarDto := dto.Calendar{
-			Id:     calendar.ID,
-			UserId: calendar.UserId,
-			Date:   calendar.Date,
-			Status: calendar.Status,
-		}
-		calendarDtos = append(calendarDtos, calendarDto)
-	}
+	calendarDtos := convertCalendarModelsToDto(calendars)
 
 	ctx.JSON(http.StatusOK, gin.H{"calendarEntries": calendarDtos})
 }
@@ -101,16 +97,7 @@ func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
 
 	calendars := handler.CalendarRepo.GetCalendarEntriesByUserId(userId, startDate, endDate)
 
-	calendarDtos := []dto.Calendar{}
-	for _, calendar := range calendars {
-		calendarDto := dto.Calendar{
-			Id:     calendar.ID,
-			UserId: userId,
-			Date:   calendar.Date,
-			Status: calendar.Status,
-		}
-		calendarDtos = append(calendarDtos, calendarDto)
-	}
+	calendarDtos := convertCalendarModelsToDto(calendars)
 
 	ctx.JSON(http.StatusOK, gin.H{"calendarEntries": calendarDtos})
 }
@@ -192,6 +179,20 @@ func getEndDateFromRequest(ctx *gin.Context) (time.Time, error) {
 	}
 
 	return time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23, 59, 59, 999999999, endDate.Location()), nil
+}
+
+func convertCalendarModelsToDto(addedCalendarModels []models.Calendar) []dto.Calendar {
+	calendarDtos := []dto.Calendar{}
+	for _, calendar := range addedCalendarModels {
+		calendarDto := dto.Calendar{
+			Id:     calendar.ID,
+			UserId: calendar.UserId,
+			Date:   calendar.Date,
+			Status: calendar.Status,
+		}
+		calendarDtos = append(calendarDtos, calendarDto)
+	}
+	return calendarDtos
 }
 
 func parseDate(dateString string) (time.Time, error) {
