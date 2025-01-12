@@ -14,7 +14,7 @@ func (helper *DateHelper) IsDateInCurrentWeek(t time.Time) bool {
 	return year == targetYear && week == targetWeek
 }
 
-func (helper *DateHelper) IsDateNextWeekAndNowBeforeFriday(t time.Time) bool {
+func (helper *DateHelper) IsDateNextWeekAndNowAfterFriday(t time.Time) bool {
 	fridayThisWeek := helper.getFridayOfWeek(time.Now())
 
 	year, week := time.Now().AddDate(0, 0, 7).ISOWeek()
@@ -23,8 +23,7 @@ func (helper *DateHelper) IsDateNextWeekAndNowBeforeFriday(t time.Time) bool {
 }
 
 func (helper *DateHelper) getFridayOfWeek(inputDate time.Time) time.Time {
-	weekday := inputDate.Weekday()
-	daysUntilFriday := (time.Friday - weekday + 7) % 7
-	friday := inputDate.AddDate(0, 0, int(daysUntilFriday))
-	return time.Date(friday.Year(), friday.Month(), friday.Day(), 12, 0, 0, 0, friday.Location())
+	mondayOffset := (int(inputDate.Weekday()) + 6) % 7
+	monday := inputDate.AddDate(0, 0, -mondayOffset) // Get the Monday of the current week
+	return monday.AddDate(0, 0, 4)
 }

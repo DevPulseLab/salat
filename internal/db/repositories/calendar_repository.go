@@ -57,7 +57,7 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 			status = enum.Rejected
 		} else if repo.dateHelper.IsDateInCurrentWeek(currDate) {
 			status = enum.Reserved
-		} else if repo.dateHelper.IsDateNextWeekAndNowBeforeFriday(currDate) {
+		} else if repo.dateHelper.IsDateNextWeekAndNowAfterFriday(currDate) {
 			status = enum.Reserved
 		}
 
