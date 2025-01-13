@@ -1,3 +1,5 @@
 .idea
 config/config.yaml
 gorm.db
+frontend/node_modules
+frontend/.env
