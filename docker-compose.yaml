@@ -1,0 +1,12 @@
+services:
+  go:
+    build:
+      context: .
+      dockerfile: config/docker/Dockerfile
+    environment:
+      CGO_ENABLED: 1
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/config.yaml:/app/config/config.yaml
+      - ./gorm.db:/app/gorm.db

@@ -20,6 +20,9 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 
 	router.Use(middlewares.CORSMiddleware())
 
+	router.StaticFile("/", "public/index.html")
+	router.Static("/public", "public")
+
 	router.GET("/api/ping", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, map[string]string{"ping": "pong"})
 	})
