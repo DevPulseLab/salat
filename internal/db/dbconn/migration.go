@@ -9,6 +9,7 @@ func RunMigrate(db *gorm.DB) {
 	err := db.AutoMigrate(
 		&models.Calendar{},
 		&models.User{},
+		&models.RealDayStats{},
 	)
 	if err != nil {
 		panic("migration failure")

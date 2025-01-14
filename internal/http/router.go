@@ -17,6 +17,7 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	authHandler := handlers.NewAuthHandler(db, config)
 	userHandler := handlers.NewUserHandler(db)
 	userCalendarHandler := handlers.NewUserCalendarHandler(db)
+	realDayStatsHandler := handlers.NewRealDayStatsHandler(db)
 
 	router.Use(middlewares.CORSMiddleware())
 
@@ -37,4 +38,6 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	router.GET("/api/user/calendar/current-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.CurrentUserList)
 	router.POST("/api/user/calendar/remove-for-current-user", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.RemoveEntryForCurrentUser)
 	router.PUT("/api/user/calendar/update-calendar-entry-status", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userCalendarHandler.ChangeEntryStatus)
+
+	router.POST("/api/stats/increment-number-of-plates", realDayStatsHandler.IncrementCountForDay)
 }
