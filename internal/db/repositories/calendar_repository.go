@@ -58,6 +58,14 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 			continue
 		}
 
+		var deletedCalendarEntry models.Calendar
+		transaction := repo.DB.Unscoped().Where("user_id = ? AND date = ? AND deleted_at IS NOT NULL", userId, currDate).First(&deletedCalendarEntry)
+		if transaction.Error == nil {
+			repo.DB.Unscoped().Model(&deletedCalendarEntry).Update("deleted_at", nil)
+			addedDays = append(addedDays, deletedCalendarEntry)
+			continue
+		}
+
 		status := enum.Approved
 		if currDate.Before(time.Now()) {
 			status = enum.Rejected
