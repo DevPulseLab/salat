@@ -39,5 +39,7 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	router.POST("/api/user/calendar/remove-for-current-user", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.RemoveEntryForCurrentUser)
 	router.PUT("/api/user/calendar/update-calendar-entry-status", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userCalendarHandler.ChangeEntryStatus)
 
-	router.POST("/api/stats/increment-number-of-plates", realDayStatsHandler.IncrementCountForDay)
+	router.POST("/api/stats/save-number-of-plates", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), realDayStatsHandler.SaveNumberOfPlatesForDay)
+	router.GET("/api/stats/get-number-of-plates", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), realDayStatsHandler.GetNumberOfPlatesForDay)
+	router.POST("/api/stats/increment-number-of-plates", realDayStatsHandler.IncrementNumberOfPlatesForDay)
 }

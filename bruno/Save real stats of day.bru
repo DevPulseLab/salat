@@ -1,0 +1,22 @@
+meta {
+  name: Save real stats of day
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:8080/api/stats/save-number-of-plates
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}
+
+body:json {
+  {
+    "statsDay": "2025-01-15T00:00:00Z",
+    "numberOfPlates": 10
+  }
+}

@@ -1,0 +1,17 @@
+meta {
+  name: Increment number of plates
+  type: http
+  seq: 13
+}
+
+post {
+  url: http://localhost:8080/api/stats/increment-number-of-plates
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "statsDay": "2025-01-15T00:00:00Z"
+  }
+}

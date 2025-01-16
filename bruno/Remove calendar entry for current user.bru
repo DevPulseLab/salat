@@ -1,0 +1,21 @@
+meta {
+  name: Remove calendar entry for current user
+  type: http
+  seq: 9
+}
+
+post {
+  url: http://localhost:8080/api/user/calendar/remove-for-current-user
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}
+
+body:json {
+  {
+    "calendarEntryId": 6
+  }
+}

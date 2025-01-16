@@ -1,0 +1,20 @@
+meta {
+  name: Current user calendar list
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:8080/api/user/calendar/current-user-list?start_date=2025-01-01&end_date=2025-01-31
+  body: none
+  auth: none
+}
+
+params:query {
+  start_date: 2025-01-01
+  end_date: 2025-01-31
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}

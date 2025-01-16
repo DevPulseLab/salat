@@ -1,0 +1,15 @@
+meta {
+  name: Get calender list for all users
+  type: http
+  seq: 8
+}
+
+get {
+  url: http://localhost:8080/api/user/calendar/all-user-list
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}

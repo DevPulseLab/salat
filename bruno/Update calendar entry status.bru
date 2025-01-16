@@ -1,0 +1,22 @@
+meta {
+  name: Update calendar entry status
+  type: http
+  seq: 10
+}
+
+put {
+  url: http://localhost:8080/api/user/calendar/update-calendar-entry-status
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}
+
+body:json {
+  {
+    "calendarEntryId": 23,
+    "newStatus": "approved"
+  }
+}

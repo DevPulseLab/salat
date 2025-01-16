@@ -26,3 +26,24 @@ func (repo *NewRealDayStatsRepository) IncrementStatsForDay(statsDay time.Time) 
 	err := repo.DB.Save(&statsEntry).Error
 	return err == nil
 }
+
+func (repo *NewRealDayStatsRepository) SaveStatsForDay(statsDay time.Time, numberOfPlates int) bool {
+	var statsEntry models.RealDayStats
+	if err := repo.DB.Where("date = ?", statsDay).First(&statsEntry).Error; err == nil {
+		statsEntry.NumberOfPlates = uint(numberOfPlates)
+	} else {
+		statsEntry = models.RealDayStats{Date: statsDay, NumberOfPlates: uint(numberOfPlates)}
+	}
+
+	err := repo.DB.Save(&statsEntry).Error
+	return err == nil
+}
+
+func (repo *NewRealDayStatsRepository) GetStatsForDay(statsDay time.Time) uint {
+	var statsEntry models.RealDayStats
+	if err := repo.DB.Where("date = ?", statsDay).First(&statsEntry).Error; err == nil {
+		return statsEntry.NumberOfPlates
+	} else {
+		return 0
+	}
+}
