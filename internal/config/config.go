@@ -14,6 +14,13 @@ type Config struct {
 	Jwt struct {
 		Secret string `yaml:"secret"`
 	} `yaml:"jwt"`
+	Azure struct {
+		Active       bool   `yaml:"active"`
+		TenantID     string `yaml:"tenantID"`
+		ClientID     string `yaml:"clientID"`
+		ClientSecret string `yaml:"clientSecret"`
+		RedirectURL  string `yaml:"redirectURL"`
+	} `yaml:azure`
 }
 
 func New() *Config {

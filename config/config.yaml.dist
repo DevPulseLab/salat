@@ -3,3 +3,10 @@ database:
 
 jwt:
   secret: jwt_secret
+
+azure:
+  active: false
+  tenantID: my_tenantID
+  clientID: my_clientID
+  clientSecret: my_clientSecret
+  redirectURL: my_redirectURL
