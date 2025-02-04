@@ -49,7 +49,7 @@ const classForStatus = () => {
 <template>
   <div v-if="props.status !== appConfig.calendar.status.noentry">
     <Tag v-if="!editMode" @click="editMode=!editMode" severity="secondary" class="w-full">
-      <span :class="classForStatus()">{{ status }}</span>
+      <span :class="classForStatus()">{{ appConfig.calendar.statusText[status] }}</span>
       <i class="pi pi-pencil" style="font-size: 1rem"></i>
     </Tag>
     <Select

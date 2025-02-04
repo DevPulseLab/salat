@@ -20,9 +20,9 @@ provide('config', {
     },
     statusText: {
       noentry: '---',
-      rejected: 'rejected',
-      approved: 'approved',
-      reserved: 'reserved',
+      rejected: 'Abgelehnt',
+      approved: 'Genehmigt',
+      reserved: 'Erwartet',
     }
   }
 })
