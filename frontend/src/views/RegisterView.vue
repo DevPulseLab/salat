@@ -54,30 +54,32 @@ const register = async () => {
   <Card class="max-w-[600px] mx-auto">
     <template #title>Register</template>
     <template #content>
-      <InputGroup class="mb-4">
-        <InputGroupAddon>
-          <i class="pi pi-user"></i>
-        </InputGroupAddon>
-        <InputText placeholder="Username" v-model="registerForm.username" />
-      </InputGroup>
+      <form @submit.prevent="register">
+        <InputGroup class="mb-4">
+          <InputGroupAddon>
+            <i class="pi pi-user"></i>
+          </InputGroupAddon>
+          <InputText placeholder="Username" v-model="registerForm.username" />
+        </InputGroup>
 
-      <InputGroup class="mb-4">
-        <InputGroupAddon>
-          <i class="pi pi-key"></i>
-        </InputGroupAddon>
-        <Password placeholder="Password" v-model="registerForm.password" :feedback="false" />
-      </InputGroup>
+        <InputGroup class="mb-4">
+          <InputGroupAddon>
+            <i class="pi pi-key"></i>
+          </InputGroupAddon>
+          <Password placeholder="Password" v-model="registerForm.password" :feedback="false" />
+        </InputGroup>
 
-      <InputGroup class="mb-4">
-        <InputGroupAddon>
-          <i class="pi pi-key"></i>
-        </InputGroupAddon>
-        <Password placeholder="Confirm password " v-model="registerForm.confirmPassword" :feedback="false" />
-      </InputGroup>
+        <InputGroup class="mb-4">
+          <InputGroupAddon>
+            <i class="pi pi-key"></i>
+          </InputGroupAddon>
+          <Password placeholder="Confirm password " v-model="registerForm.confirmPassword" :feedback="false" />
+        </InputGroup>
 
-      <div class="flex justify-center">
-        <Button label="Register" @click="register" raised />
-      </div>
+        <div class="flex justify-center">
+          <Button label="Register" type="submit" raised />
+        </div>
+      </form>
     </template>
   </Card>
 </template>

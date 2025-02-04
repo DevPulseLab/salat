@@ -39,23 +39,25 @@ const login = async () => {
   <Card class="max-w-[400px] w-full mx-auto">
     <template #title>Login</template>
     <template #content>
-      <InputGroup class="mb-4">
-        <InputGroupAddon>
-          <i class="pi pi-user"></i>
-        </InputGroupAddon>
-        <InputText placeholder="Username" v-model="username" />
-      </InputGroup>
+      <form @submit.prevent="login">
+        <InputGroup class="mb-4">
+          <InputGroupAddon>
+            <i class="pi pi-user"></i>
+          </InputGroupAddon>
+          <InputText placeholder="Username" v-model="username" />
+        </InputGroup>
 
-      <InputGroup class="mb-4">
-        <InputGroupAddon>
-          <i class="pi pi-key"></i>
-        </InputGroupAddon>
-        <Password placeholder="Password" v-model="password" :feedback="false" />
-      </InputGroup>
+        <InputGroup class="mb-4">
+          <InputGroupAddon>
+            <i class="pi pi-key"></i>
+          </InputGroupAddon>
+          <Password placeholder="Password" v-model="password" :feedback="false" />
+        </InputGroup>
 
-      <div class="flex justify-center">
-        <Button label="Login" @click="login" raised />
-      </div>
+        <div class="flex justify-center">
+          <Button label="Login" type="submit" raised />
+        </div>
+      </form>
     </template>
   </Card>
 </template>
