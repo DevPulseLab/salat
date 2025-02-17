@@ -29,6 +29,7 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 		ctx.JSON(http.StatusOK, map[string]string{"ping": "pong"})
 	})
 
+	router.POST("/api/register/cloudflare", authHandler.CloudflareSSO)
 	router.POST("/api/register", authHandler.Register)
 	router.POST("/api/login", authHandler.Login)
 

@@ -61,3 +61,12 @@ func (repo *UserRepository) GetIdByUsername(username string) (uint, error) {
 
 	return user.ID, nil
 }
+
+func (repo *UserRepository) FindByUsername(username string) (*models.User, error) {
+	var user models.User
+	if err := repo.DB.Where("username = ?", username).First(&user).Error; err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	return &user, nil
+}

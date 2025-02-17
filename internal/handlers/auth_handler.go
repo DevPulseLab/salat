@@ -72,3 +72,42 @@ func (handler *AuthHandler) Login(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
+
+func (handler *AuthHandler) CloudflareSSO(ctx *gin.Context) {
+	email := ctx.GetHeader("Cf-Access-Authenticated-User-Email")
+	if email == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Email not provided by Cloudflare"})
+		return
+	}
+
+	user, err := handler.UserRepo.FindByUsername(email)
+	if err != nil {
+		if err := handler.UserRepo.RegisterUser(email, "", models.RoleUser); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create user"})
+			return
+		}
+
+		user, err = handler.UserRepo.FindByUsername(email)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could nor found created user"})
+			return
+		}
+	}
+
+	expirationTime := time.Now().Truncate(24 * time.Hour).Add(24*time.Hour - time.Second)
+	claims := &dto.Claims{
+		Username: user.Username,
+		Role:     user.Role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+	}
+
+	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(handler.Config.Jwt.Secret))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"token": tokenString})
+}

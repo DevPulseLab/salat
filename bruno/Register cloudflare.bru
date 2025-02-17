@@ -1,0 +1,15 @@
+meta {
+  name: Register cloudflare
+  type: http
+  seq: 14
+}
+
+post {
+  url: http://localhost:8080/api/register/cloudflare
+  body: json
+  auth: none
+}
+
+headers {
+  Cf-Access-Authenticated-User-Email: testUser
+}
