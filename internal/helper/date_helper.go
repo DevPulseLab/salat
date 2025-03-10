@@ -1,6 +1,10 @@
 package helper
 
-import "time"
+import (
+	"time"
+
+	"github.com/uniplaces/carbon"
+)
 
 type DateHelper struct{}
 
@@ -9,17 +13,19 @@ func NewDateHelper() *DateHelper {
 }
 
 func (helper *DateHelper) IsDateInCurrentWeek(t time.Time) bool {
-	year, week := time.Now().ISOWeek()
+	year, week := carbon.Now().ISOWeek()
 	targetYear, targetWeek := t.ISOWeek()
 	return year == targetYear && week == targetWeek
 }
 
 func (helper *DateHelper) IsDateNextWeekAndNowAfterFriday(t time.Time) bool {
-	fridayThisWeek := helper.getFridayOfWeek(time.Now())
+	fridayThisWeek := helper.getFridayOfWeek(carbon.Now().Time)
+	fridayThisWeekLunch := time.Date(fridayThisWeek.Year(), fridayThisWeek.Month(), fridayThisWeek.Day(), 12, 0, 0, 0, fridayThisWeek.Location())
 
-	year, week := time.Now().AddDate(0, 0, 7).ISOWeek()
+	year, week := carbon.Now().AddDate(0, 0, 7).ISOWeek()
 	targetYear, targetWeek := t.ISOWeek()
-	return year == targetYear && week == targetWeek && time.Now().After(fridayThisWeek)
+
+	return year == targetYear && week == targetWeek && carbon.Now().After(fridayThisWeekLunch)
 }
 
 func (helper *DateHelper) getFridayOfWeek(inputDate time.Time) time.Time {
