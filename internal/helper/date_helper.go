@@ -38,3 +38,7 @@ func (helper *DateHelper) IsWeekend(inputDate time.Time) bool {
 	weekday := inputDate.Weekday()
 	return weekday == time.Saturday || weekday == time.Sunday
 }
+
+func ParseDate(dateString string) (time.Time, error) {
+	return time.Parse("2006-01-02", dateString)
+}

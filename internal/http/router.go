@@ -17,6 +17,7 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	authHandler := handlers.NewAuthHandler(db, config)
 	userHandler := handlers.NewUserHandler(db)
 	userCalendarHandler := handlers.NewUserCalendarHandler(db)
+	adminCalendarHandler := handlers.NewAdminCalendarHandler(db)
 	realDayStatsHandler := handlers.NewRealDayStatsHandler(db)
 
 	router.Use(middlewares.CORSMiddleware())
@@ -34,14 +35,17 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	router.POST("/api/login", authHandler.Login)
 
 	router.GET("/api/users/list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userHandler.GetUserList)
-	router.GET("/api/user/calendar/all-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userCalendarHandler.AllUserList)
+	router.GET("/api/user/calendar/all-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.AllUserList)
 
 	router.POST("/api/user/calendar/add", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.Add)
 	router.GET("/api/user/calendar/current-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.CurrentUserList)
 	router.POST("/api/user/calendar/remove-for-current-user", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.RemoveEntryForCurrentUser)
-	router.PUT("/api/user/calendar/update-calendar-entry-status", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userCalendarHandler.ChangeEntryStatus)
+	router.PUT("/api/user/calendar/update-calendar-entry-status", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.ChangeEntryStatus)
 
 	router.POST("/api/stats/save-number-of-plates", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), realDayStatsHandler.SaveNumberOfPlatesForDay)
 	router.GET("/api/stats/get-number-of-plates", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), realDayStatsHandler.GetNumberOfPlatesForDay)
 	router.POST("/api/stats/increment-number-of-plates", realDayStatsHandler.IncrementNumberOfPlatesForDay)
+
+	router.POST("/api/admin/calendar/add-close-interval", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.AddCloseDateInterval)
+	router.GET("/api/user/calendar/get-close-intervals", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser, models.RoleAdmin), userCalendarHandler.GetCloseDateInterval)
 }

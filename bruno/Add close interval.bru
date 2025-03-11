@@ -1,0 +1,22 @@
+meta {
+  name: Add close interval
+  type: http
+  seq: 15
+}
+
+post {
+  url: http://localhost:8080/api/admin/calendar/add-close-interval
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}
+
+body:json {
+  {
+    "startDate": "2025-03-13T00:00:00",
+    "endDate": "2025-03-18T00:00:00"
+  }
+}

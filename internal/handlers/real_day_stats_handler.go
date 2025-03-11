@@ -6,16 +6,17 @@ import (
 
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/forms"
+	"github.com/DevPulseLab/salat/internal/helper"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type RealDayStatsHandler struct {
-	RealDayStatsRepo *repositories.NewRealDayStatsRepository
+	RealDayStatsRepo *repositories.RealDayStatsRepository
 }
 
 func NewRealDayStatsHandler(db *gorm.DB) *RealDayStatsHandler {
-	realDayStatsRepo := repositories.NewNewRealDayStatsRepository(db)
+	realDayStatsRepo := repositories.NewRealDayStatsRepository(db)
 	return &RealDayStatsHandler{realDayStatsRepo}
 }
 
@@ -67,7 +68,7 @@ func getStatsDateFromRequest(ctx *gin.Context) (time.Time, error) {
 		startDate = time.Now()
 	} else {
 		var err error
-		startDate, err = parseDate(statsDate)
+		startDate, err = helper.ParseDate(statsDate)
 		if err != nil {
 			return time.Time{}, err
 		}

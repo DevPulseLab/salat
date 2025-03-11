@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/DevPulseLab/salat/internal/db/models"
+	"github.com/DevPulseLab/salat/internal/builder"
 	"github.com/DevPulseLab/salat/internal/db/repositories"
-	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/forms"
 	"github.com/DevPulseLab/salat/internal/helper"
 	"github.com/gin-gonic/gin"
@@ -14,16 +13,24 @@ import (
 )
 
 type UserCalendarHandler struct {
-	CalendarRepo *repositories.CalendarRepository
-	UserRepo     *repositories.UserRepository
-	DateHelper   *helper.DateHelper
+	CalendarRepo            *repositories.CalendarRepository
+	UserRepo                *repositories.UserRepository
+	CloseIntervalRepo       *repositories.CloseIntervalRepository
+	DateHelper              *helper.DateHelper
+	RequestHelper           *helper.RequestHelper
+	CalendarDtoBuilder      *builder.CalendarDtoBuilder
+	CloseIntervalDtoBuilder *builder.CloseIntervalDtoBuilder
 }
 
 func NewUserCalendarHandler(db *gorm.DB) *UserCalendarHandler {
 	dateHelper := helper.NewDateHelper()
 	calendarRepo := repositories.NewCalendarRepository(db, dateHelper)
 	userRepo := repositories.NewUserRepository(db)
-	return &UserCalendarHandler{calendarRepo, userRepo, dateHelper}
+	closeIntervalsRepo := repositories.NewCloseIntervalsRepository(db)
+	requestHelper := helper.NewRequestHelper()
+	calendarDtoBuilder := builder.NewCalendarDtoBuilder()
+	closeIntervalDtoBuilder := builder.NewCloseIntervalDtoBuilder()
+	return &UserCalendarHandler{calendarRepo, userRepo, closeIntervalsRepo, dateHelper, requestHelper, calendarDtoBuilder, closeIntervalDtoBuilder}
 }
 
 func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
@@ -41,7 +48,7 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 
 	addedCalendarModels, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate)
 	if len(errors) == 0 {
-		calendarDtos := convertCalendarModelsToDto(addedCalendarModels)
+		calendarDtos := handler.CalendarDtoBuilder.BuildFromCalendarModels(addedCalendarModels)
 
 		ctx.JSON(http.StatusOK, gin.H{"message": "Calendar data saved", "calendarEntries": calendarDtos})
 		return
@@ -52,28 +59,8 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 		return
 	}
 
-	calendarDtos := convertCalendarModelsToDto(addedCalendarModels)
+	calendarDtos := handler.CalendarDtoBuilder.BuildFromCalendarModels(addedCalendarModels)
 	ctx.JSON(http.StatusOK, gin.H{"message": "Not all calendar data was saved", "calendarEntries": calendarDtos})
-}
-
-func (handler *UserCalendarHandler) AllUserList(ctx *gin.Context) {
-	startDate, err := getStartDateFromRequest(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format. Use YYYY-MM-DD."})
-		return
-	}
-
-	endDate, err := getEndDateFromRequest(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format. Use YYYY-MM-DD."})
-		return
-	}
-
-	calendars := handler.CalendarRepo.GetCalendarEntriesForAllUsers(startDate, endDate)
-
-	calendarDtos := convertCalendarModelsToDto(calendars)
-
-	ctx.JSON(http.StatusOK, gin.H{"calendarEntries": calendarDtos})
 }
 
 func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
@@ -83,13 +70,13 @@ func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
 		return
 	}
 
-	startDate, err := getStartDateFromRequest(ctx)
+	startDate, err := handler.RequestHelper.GetStartDateFromRequest(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format. Use YYYY-MM-DD."})
 		return
 	}
 
-	endDate, err := getEndDateFromRequest(ctx)
+	endDate, err := handler.RequestHelper.GetEndDateFromRequest(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format. Use YYYY-MM-DD."})
 		return
@@ -97,7 +84,7 @@ func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
 
 	calendars := handler.CalendarRepo.GetCalendarEntriesByUserId(userId, startDate, endDate)
 
-	calendarDtos := convertCalendarModelsToDto(calendars)
+	calendarDtos := handler.CalendarDtoBuilder.BuildFromCalendarModels(calendars)
 
 	ctx.JSON(http.StatusOK, gin.H{"calendarEntries": calendarDtos})
 }
@@ -131,70 +118,22 @@ func (handler *UserCalendarHandler) RemoveEntryForCurrentUser(ctx *gin.Context) 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})
 }
 
-func (handler *UserCalendarHandler) ChangeEntryStatus(ctx *gin.Context) {
-	var form forms.ChangeCalendarEntryForm
-	if err := ctx.ShouldBindJSON(&form); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	err := handler.CalendarRepo.ChangeEntryStatus(form.CalendarEntryId, form.NewStatus)
+func (handler *UserCalendarHandler) GetCloseDateInterval(ctx *gin.Context) {
+	startDate, err := handler.RequestHelper.GetStartDateFromRequest(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Calendar entry not changed"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format. Use YYYY-MM-DD."})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"success": true})
-}
-
-func getStartDateFromRequest(ctx *gin.Context) (time.Time, error) {
-	startDateString := ctx.DefaultQuery("start_date", "")
-
-	var startDate time.Time
-	if startDateString == "" {
-		startDate = time.Now().AddDate(0, 0, -int(time.Now().Weekday()-1))
-	} else {
-		var err error
-		startDate, err = parseDate(startDateString)
-		if err != nil {
-			return time.Time{}, err
-		}
+	endDate, err := handler.RequestHelper.GetEndDateFromRequest(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format. Use YYYY-MM-DD."})
+		return
 	}
 
-	return time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location()), nil
-}
+	closeDateIntervalModels := handler.CloseIntervalRepo.GetAllEntriesForInterval(startDate, endDate)
 
-func getEndDateFromRequest(ctx *gin.Context) (time.Time, error) {
-	endDateString := ctx.DefaultQuery("end_date", "")
+	closeDateIntervalsDto := handler.CloseIntervalDtoBuilder.BuildFromCloseIntervalModel(closeDateIntervalModels)
 
-	var endDate time.Time
-	if endDateString == "" {
-		endDate = time.Now().AddDate(0, 0, 7-int(time.Now().Weekday()))
-	} else {
-		var err error
-		endDate, err = parseDate(endDateString)
-		if err != nil {
-			return time.Time{}, err
-		}
-	}
-
-	return time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23, 59, 59, 999999999, endDate.Location()), nil
-}
-
-func convertCalendarModelsToDto(addedCalendarModels []models.Calendar) []dto.Calendar {
-	calendarDtos := []dto.Calendar{}
-	for _, calendar := range addedCalendarModels {
-		calendarDto := dto.Calendar{
-			Id:     calendar.ID,
-			UserId: calendar.UserId,
-			Date:   calendar.Date,
-			Status: calendar.Status,
-		}
-		calendarDtos = append(calendarDtos, calendarDto)
-	}
-	return calendarDtos
-}
-
-func parseDate(dateString string) (time.Time, error) {
-	return time.Parse("2006-01-02", dateString)
+	ctx.JSON(http.StatusOK, gin.H{"closeDateIntervals": closeDateIntervalsDto})
 }

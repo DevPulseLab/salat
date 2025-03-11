@@ -1,0 +1,26 @@
+meta {
+  name: Get close intervals
+  type: http
+  seq: 16
+}
+
+get {
+  url: http://localhost:8080/api/user/calendar/get-close-intervals?startDate=2025-03-01&endDate=2025-03-31
+  body: json
+  auth: none
+}
+
+params:query {
+  startDate: 2025-03-01
+  endDate: 2025-03-31
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}
+
+body:json {
+  {
+    "statsDay": "2025-01-15T00:00:00Z"
+  }
+}

@@ -7,15 +7,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type NewRealDayStatsRepository struct {
+type RealDayStatsRepository struct {
 	DB *gorm.DB
 }
 
-func NewNewRealDayStatsRepository(db *gorm.DB) *NewRealDayStatsRepository {
-	return &NewRealDayStatsRepository{DB: db}
+func NewRealDayStatsRepository(db *gorm.DB) *RealDayStatsRepository {
+	return &RealDayStatsRepository{DB: db}
 }
 
-func (repo *NewRealDayStatsRepository) IncrementStatsForDay(statsDay time.Time) bool {
+func (repo *RealDayStatsRepository) IncrementStatsForDay(statsDay time.Time) bool {
 	var statsEntry models.RealDayStats
 	if err := repo.DB.Where("date = ?", statsDay).First(&statsEntry).Error; err == nil {
 		statsEntry.NumberOfPlates++
@@ -27,7 +27,7 @@ func (repo *NewRealDayStatsRepository) IncrementStatsForDay(statsDay time.Time) 
 	return err == nil
 }
 
-func (repo *NewRealDayStatsRepository) SaveStatsForDay(statsDay time.Time, numberOfPlates int) bool {
+func (repo *RealDayStatsRepository) SaveStatsForDay(statsDay time.Time, numberOfPlates int) bool {
 	var statsEntry models.RealDayStats
 	if err := repo.DB.Where("date = ?", statsDay).First(&statsEntry).Error; err == nil {
 		statsEntry.NumberOfPlates = uint(numberOfPlates)
@@ -39,7 +39,7 @@ func (repo *NewRealDayStatsRepository) SaveStatsForDay(statsDay time.Time, numbe
 	return err == nil
 }
 
-func (repo *NewRealDayStatsRepository) GetStatsForDay(statsDay time.Time) uint {
+func (repo *RealDayStatsRepository) GetStatsForDay(statsDay time.Time) uint {
 	var statsEntry models.RealDayStats
 	if err := repo.DB.Where("date = ?", statsDay).First(&statsEntry).Error; err == nil {
 		return statsEntry.NumberOfPlates
