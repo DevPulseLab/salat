@@ -18,7 +18,7 @@ COPY . .
 RUN go build cmd/server/main.go
 
 WORKDIR /app/frontend
-RUN npm install
+RUN npm install --loglevel verbose
 RUN npm run build
 WORKDIR /app
 

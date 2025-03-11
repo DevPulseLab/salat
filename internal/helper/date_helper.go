@@ -3,6 +3,7 @@ package helper
 import (
 	"time"
 
+	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/uniplaces/carbon"
 )
 
@@ -37,6 +38,16 @@ func (helper *DateHelper) getFridayOfWeek(inputDate time.Time) time.Time {
 func (helper *DateHelper) IsWeekend(inputDate time.Time) bool {
 	weekday := inputDate.Weekday()
 	return weekday == time.Saturday || weekday == time.Sunday
+}
+
+func (helper *DateHelper) IsDateInCloseIntervals(inputDate time.Time, closeIntervals []dto.CloseInterval) bool {
+	for _, closeInterval := range closeIntervals {
+		if inputDate.Unix() >= closeInterval.StartDate.Unix() && inputDate.Unix() <= closeInterval.EndDate.Unix() {
+			return true
+		}
+	}
+
+	return false
 }
 
 func ParseDate(dateString string) (time.Time, error) {

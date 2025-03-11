@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/DevPulseLab/salat/internal/db/models"
+	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/enum"
 	"github.com/DevPulseLab/salat/internal/helper"
 	"gorm.io/gorm"
@@ -46,7 +47,7 @@ func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) e
 	return result.Error
 }
 
-func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate time.Time) ([]models.Calendar, []error) {
+func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate time.Time, closeIntervals []dto.CloseInterval) ([]models.Calendar, []error) {
 	currDate := startDate
 
 	errors := []error{}
@@ -54,6 +55,11 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 
 	for endDate.Sub(currDate).Hours() > 0 {
 		if repo.dateHelper.IsWeekend(currDate) {
+			currDate = currDate.AddDate(0, 0, 1)
+			continue
+		}
+
+		if repo.dateHelper.IsDateInCloseIntervals(currDate, closeIntervals) {
 			currDate = currDate.AddDate(0, 0, 1)
 			continue
 		}

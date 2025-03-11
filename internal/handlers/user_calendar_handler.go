@@ -46,7 +46,9 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 		return
 	}
 
-	addedCalendarModels, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate)
+	closeIntervalModels := handler.CloseIntervalRepo.GetAllEntriesForInterval(form.StartDate, form.EndDate)
+
+	addedCalendarModels, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate, handler.CloseIntervalDtoBuilder.BuildFromCloseIntervalModel(closeIntervalModels))
 	if len(errors) == 0 {
 		calendarDtos := handler.CalendarDtoBuilder.BuildFromCalendarModels(addedCalendarModels)
 

@@ -24,7 +24,18 @@ func (repo *CloseIntervalRepository) SaveCloseInterval(startDate time.Time, endD
 func (repo *CloseIntervalRepository) GetAllEntriesForInterval(startDate time.Time, endDate time.Time) []models.CloseInterval {
 	var closeDateIntervals []models.CloseInterval
 
-	repo.DB.Where("(start_date >= ? AND start_date <= ?) OR (end_date >= ? AND end_date <= ?)", startDate, endDate, startDate, endDate).Find(&closeDateIntervals)
+	repo.DB.
+		Where(
+			`(start_date >= @startDate AND start_date <= @endDate) 
+			OR (end_date >= @startDate AND end_date <= @endDate) 
+			OR (start_date <= @startDate AND end_date >= @startDate) 
+			OR (start_date <= @endDate AND end_date >= @endDate)`,
+			map[string]interface{}{
+				"startDate": startDate,
+				"endDate":   endDate,
+			},
+		).
+		Find(&closeDateIntervals)
 
 	return closeDateIntervals
 }
