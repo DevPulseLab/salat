@@ -78,3 +78,21 @@ func (handler *AdminCalendarHandler) AddCloseDateInterval(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})
 }
+
+func (handler *AdminCalendarHandler) RemoveCloseDateInterval(ctx *gin.Context) {
+	var form forms.RemoveCloseIntervalEntryForm
+	if err := ctx.ShouldBindJSON(&form); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	closeIntervalEntry, err := handler.CloseIntervalRepo.GetById(form.CloseIntervalEntryId)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Close interval not found"})
+		return
+	}
+
+	handler.CloseIntervalRepo.Remove(&closeIntervalEntry)
+
+	ctx.JSON(http.StatusOK, gin.H{"success": true})
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Remove close interval entry
+  type: http
+  seq: 17
+}
+
+post {
+  url: http://localhost:8080/api/admin/calendar/remove-close-interval
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}
+
+body:json {
+  {
+    "closeIntervalEntryId": 1
+  }
+}

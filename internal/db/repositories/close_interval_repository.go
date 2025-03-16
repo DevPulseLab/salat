@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"time"
 
 	"github.com/DevPulseLab/salat/internal/db/models"
@@ -38,4 +39,19 @@ func (repo *CloseIntervalRepository) GetAllEntriesForInterval(startDate time.Tim
 		Find(&closeDateIntervals)
 
 	return closeDateIntervals
+}
+
+func (repo *CloseIntervalRepository) GetById(id uint) (models.CloseInterval, error) {
+	var closeIntervalEntry models.CloseInterval
+
+	result := repo.DB.First(&closeIntervalEntry, id)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return closeIntervalEntry, result.Error
+	}
+
+	return closeIntervalEntry, nil
+}
+
+func (repo *CloseIntervalRepository) Remove(model *models.CloseInterval) {
+	repo.DB.Delete(&model)
 }
