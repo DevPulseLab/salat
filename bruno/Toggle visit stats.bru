@@ -1,0 +1,22 @@
+meta {
+  name: Toggle visit stats
+  type: http
+  seq: 18
+}
+
+post {
+  url: http://localhost:8080/api/admin/calendar/toggle-visit
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}
+
+body:json {
+  {
+    "visitDate": "2025-04-01T00:00:00Z",
+    "userId": 2
+  }
+}

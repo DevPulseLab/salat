@@ -11,6 +11,7 @@ func RunMigrate(db *gorm.DB) {
 		&models.User{},
 		&models.RealDayStats{},
 		&models.CloseInterval{},
+		&models.VisitStats{},
 	)
 	if err != nil {
 		panic("migration failure")

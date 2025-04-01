@@ -14,6 +14,7 @@ import (
 type AdminCalendarHandler struct {
 	CalendarRepo       *repositories.CalendarRepository
 	CloseIntervalRepo  *repositories.CloseIntervalRepository
+	VisitStatsRepo     *repositories.VisitStatsRepository
 	RequestHelper      *helper.RequestHelper
 	CalendarDtoBuilder *builder.CalendarDtoBuilder
 }
@@ -22,9 +23,10 @@ func NewAdminCalendarHandler(db *gorm.DB) *AdminCalendarHandler {
 	dateHelper := helper.NewDateHelper()
 	closeIntervalRepo := repositories.NewCloseIntervalsRepository(db)
 	calendarRepo := repositories.NewCalendarRepository(db, dateHelper)
+	visitStatsRepo := repositories.NewVisitStatsRepository(db)
 	requestHelper := helper.NewRequestHelper()
 	calendarDtoBuilder := builder.NewCalendarDtoBuilder()
-	return &AdminCalendarHandler{calendarRepo, closeIntervalRepo, requestHelper, calendarDtoBuilder}
+	return &AdminCalendarHandler{calendarRepo, closeIntervalRepo, visitStatsRepo, requestHelper, calendarDtoBuilder}
 }
 
 func (handler *AdminCalendarHandler) AllUserList(ctx *gin.Context) {
@@ -95,4 +97,20 @@ func (handler *AdminCalendarHandler) RemoveCloseDateInterval(ctx *gin.Context) {
 	handler.CloseIntervalRepo.Remove(&closeIntervalEntry)
 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+func (handler *AdminCalendarHandler) ToggleVisit(ctx *gin.Context) {
+	var form forms.ToggleVisitForm
+	if err := ctx.ShouldBindJSON(&form); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	visitStats, err := handler.VisitStatsRepo.ToggleVisit(form.UserId, form.VisitDate)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Visit stats not saved"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Visit stats saved", "isVisit": visitStats.IsVisit})
 }
