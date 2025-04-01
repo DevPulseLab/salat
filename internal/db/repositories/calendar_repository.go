@@ -49,6 +49,7 @@ func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) e
 
 func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate time.Time, closeIntervals []dto.CloseInterval) ([]models.Calendar, []error) {
 	currDate := startDate
+	nowPlus30Days := time.Now().AddDate(0, 0, 30)
 
 	errors := []error{}
 	addedDays := []models.Calendar{}
@@ -65,7 +66,7 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 		}
 
 		status := enum.Approved
-		if currDate.Before(time.Now()) {
+		if currDate.Before(time.Now()) || currDate.After(nowPlus30Days) {
 			status = enum.Rejected
 		} else if repo.dateHelper.IsDateInCurrentWeek(currDate) {
 			status = enum.Reserved
