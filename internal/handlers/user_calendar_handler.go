@@ -110,8 +110,11 @@ func (handler *UserCalendarHandler) RemoveEntryForCurrentUser(ctx *gin.Context) 
 		return
 	}
 
-	if calendarEntry.Date.Before(time.Now()) || handler.DateHelper.IsDateInCurrentWeek(calendarEntry.Date) {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Can not remove past or this week entries"})
+	if calendarEntry.Date.Before(time.Now()) ||
+		calendarEntry.IsRejected() ||
+		(calendarEntry.IsApproved() && handler.DateHelper.IsDateInCurrentWeek(calendarEntry.Date)) {
+
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Can not remove past, rejected or approved this week entries"})
 		return
 	}
 
