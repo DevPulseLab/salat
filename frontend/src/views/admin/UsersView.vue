@@ -117,9 +117,8 @@ onMounted(async () => {
 
     users.value.forEach((user) => {
       if(user.username.endsWith("@gmail.com")) {
-        const name = user.username.split('@')[0],
-            [firstName, lastName] = name.split('.');
-        user.username = firstName.charAt(0).toUpperCase() + '. ' + lastName.charAt(0).toUpperCase() + lastName.slice(1);
+        const [firstName, lastName] = user.username.split('@')[0].split('.');
+        user.username = firstName.toUpperCase() + '. ' + lastName.charAt(0).toUpperCase() + lastName.slice(1);
       }
     })
 
