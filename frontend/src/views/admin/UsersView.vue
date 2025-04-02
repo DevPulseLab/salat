@@ -116,10 +116,8 @@ onMounted(async () => {
     users.value = Array.from(usersMap.entries()).map(([id, user]) => ({id, ...user}));
 
     users.value.forEach((user) => {
-      if(user.username.endsWith("@gmail.com")) {
         const [firstName, lastName] = user.username.split('@')[0].split('.');
         user.username = firstName.toUpperCase() + '. ' + lastName.charAt(0).toUpperCase() + lastName.slice(1);
-      }
     })
 
     const weekdays = Array.from(moment.range(startDate.value, endDate.value).by('days')).filter(day => {
