@@ -48,6 +48,7 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 
 	router.POST("/api/admin/calendar/add-close-interval", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.AddCloseDateInterval)
 	router.POST("/api/admin/calendar/remove-close-interval", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.RemoveCloseDateInterval)
+	router.GET("/api/admin/calendar/get-visit-stats-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.GetVisitStatsList)
 	router.POST("/api/admin/calendar/toggle-visit", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.ToggleVisit)
 	router.GET("/api/user/calendar/get-close-intervals", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser, models.RoleAdmin), userCalendarHandler.GetCloseDateInterval)
 }

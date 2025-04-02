@@ -26,3 +26,11 @@ func (repo *VisitStatsRepository) ToggleVisit(userId uint, visitDate time.Time) 
 	err := repo.DB.Save(&statsEntry).Error
 	return &statsEntry, err
 }
+
+func (repo *VisitStatsRepository) GetVisitVisit(startDate, endDate time.Time) []models.VisitStats {
+	var visitStatsList []models.VisitStats
+
+	repo.DB.Where("date >= ? AND date <= ?", startDate, endDate).Find(&visitStatsList)
+
+	return visitStatsList
+}

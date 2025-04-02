@@ -1,11 +1,11 @@
 meta {
-  name: Current user calendar list
+  name: Get visit stats list
   type: http
   seq: 5
 }
 
 get {
-  url: http://localhost:8080/api/user/calendar/current-user-list?start_date=2025-03-01&end_date=2025-03-31
+  url: http://localhost:8080/api/admin/calendar/get-visit-stats-list?start_date=2025-03-01&end_date=2025-03-31
   body: none
   auth: none
 }
