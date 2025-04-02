@@ -65,7 +65,7 @@ const changeUserDayStatus = async (data) => {
   const changed = await usersService.changeEntryStatus(data.id, data.status)
   if (changed) {
     await loadTable()
-    toast.add({severity: 'success', summary: 'Status changed ...', life: 2000})
+    toast.add({severity: 'success', summary: 'Status geändert...', life: 2000})
   }
 }
 
@@ -100,13 +100,13 @@ const savePlatesNumber = async (day) => {
     const success = await usersService.savePlatesNumber(statsDay, numberOfPlates);
 
     if (success) {
-      toast.add({severity: 'success', summary: 'Number of plates saved!', life: 2000});
+      toast.add({severity: 'success', summary: 'Anzahl der Teller wurde gespeichert!', life: 2000});
     } else {
-      toast.add({severity: 'error', summary: 'Failed to save plates number.', life: 2000});
+      toast.add({severity: 'error', summary: 'Anzahl der Teller könnte nicht gespeichert werden.', life: 2000});
     }
   } catch (error) {
-    console.error('Error saving number of plates:', error);
-    toast.add({severity: 'error', summary: 'Error saving number of plates', life: 2000});
+    console.error('Fehler beim Speichern der Telleranzahl:', error);
+    toast.add({severity: 'error', summary: 'Beim Speichern der Telleranzahl ist ein Fehler aufgeträtten', life: 2000});
   }
 }
 
@@ -114,6 +114,14 @@ onMounted(async () => {
   try {
     const usersMap = await usersService.fetchUsers();
     users.value = Array.from(usersMap.entries()).map(([id, user]) => ({id, ...user}));
+
+    users.value.forEach((user) => {
+      if(user.username.endsWith("@gmail.com")) {
+        const name = user.username.split('@')[0],
+            [firstName, lastName] = name.split('.');
+        user.username = firstName.charAt(0).toUpperCase() + '. ' + lastName.charAt(0).toUpperCase() + lastName.slice(1);
+      }
+    })
 
     const weekdays = Array.from(moment.range(startDate.value, endDate.value).by('days')).filter(day => {
       return day.isoWeekday() >= 1 && day.isoWeekday() <= 5;
@@ -180,7 +188,7 @@ onMounted(async () => {
       </td>
     </tr>
     <tr class="statistics border-t font-bold">
-      <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a">Mit Status 'Approved':</td>
+      <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a">Mit Status "Genehmigt" :</td>
       <td
           class="px-2 py-1 w-[200px] border-l border-r text-center" style="background: #fdfdfd8a"
           v-for="day in moment.range(week.clone().startOf('week'), week.clone().endOf('week').subtract(2, 'day')).by('day')"
