@@ -97,6 +97,28 @@ const useUsersService = () => {
         })
     }
 
+    const setCheckboxValue = async (visitDate, userId) => {
+        try {
+            const response = await http.post('/api/admin/calendar/toggle-visit', {
+                visitDate,
+                userId
+            })
+            return response.status === 200;
+        } catch (error) {
+            console.error('Can not set visit', error)
+        }
+    }
+
+    const getCheckboxValue = async (startDate, endDate) => {
+        try {
+            const response = await http.get('/api/admin/calendar/get-visit-stats-list?start_date=' + startDate.format(appConfig.DATE_FORMAT) + '&end_date=' + endDate.format(appConfig.DATE_FORMAT))
+            return response.data.calendarEntries;
+        } catch (error) {
+            console.error('Can not become visit', error);
+            return 0;
+        }
+    }
+
     return {
         changeEntryStatus,
         fetchUsers,
@@ -105,7 +127,9 @@ const useUsersService = () => {
         savePlatesNumber,
         addAbsence,
         fetchAbsences,
-        removeAbsence
+        removeAbsence,
+        setCheckboxValue,
+        getCheckboxValue
     }
 }
 

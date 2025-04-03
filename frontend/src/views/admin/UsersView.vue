@@ -5,6 +5,7 @@ import useUsersService from '@/services/usersService.js'
 import {useToast} from 'primevue/usetoast'
 
 import DatePicker from 'primevue/datepicker'
+import Checkbox from 'primevue/checkbox'
 import DaySelect from '@/components/DaySelect.vue'
 
 const usersService = useUsersService()
@@ -17,6 +18,7 @@ const users = ref([])
 
 const loading = ref(true)
 const editMode = ref(false)
+const checkedUsers = ref({});
 
 const platesNumbers = ref({});
 
@@ -49,7 +51,9 @@ const updateDateRange = async (start, end) => {
     const statsDay = day.format(appConfig.DATE_FORMAT);
     platesNumbers.value[statsDay] = await usersService.fetchNumberOfPlates(statsDay);
   }
+
   await loadTable()
+  await loadCheckboxValues()
 }
 
 const dayEntry = (day, userId) => {
@@ -91,6 +95,18 @@ const countApprovedPerDay = (day) => {
   }, 0);
 };
 
+const countCheckedCheckboxesPerDay = (day) => {
+  let count = 0;
+
+  users.value.forEach(user => {
+    const key = `${user.id}_${day.format(appConfig.DATE_FORMAT)}`;
+    if (checkedUsers.value[key]) {
+      count++;
+    }
+  });
+  return count;
+};
+
 
 const savePlatesNumber = async (day) => {
   try {
@@ -110,8 +126,39 @@ const savePlatesNumber = async (day) => {
   }
 }
 
+const saveCheckboxValue = async (day, userId) => {
+  const visitDate = day.format(appConfig.DATETIME_FORMAT);
+
+  try {
+    const success = await usersService.setCheckboxValue(visitDate, userId);
+    if (success) {
+      toast.add({severity: 'success', summary: 'Nutzer wurde eingecheckt!', life: 2000});
+    } else {
+      toast.add({severity: 'error', summary: 'Nutzer könnte nicht eingecheckt werden.', life: 2000});
+    }
+  } catch (error) {
+    console.error('Error checking user:', error);
+    toast.add({severity: 'error', summary: 'Error. Nutzer könnte nicht eingecheckt werden.', life: 2000});
+  }
+};
+
+const loadCheckboxValues = async () => {
+  try {
+    const checkboxValues = await usersService.getCheckboxValue(moment(dates.value[0]), moment(dates.value[1]));
+
+    checkboxValues.forEach(item => {
+      const key = `${item.userId}_${moment(item.date).format(appConfig.DATE_FORMAT)}`;
+      checkedUsers.value[key] = item.isVisit;
+    });
+  } catch (error) {
+    console.error('Error during load checkbox values:', error);
+  }
+}
+
 onMounted(async () => {
   try {
+    await loadCheckboxValues()
+
     const usersMap = await usersService.fetchUsers();
     users.value = Array.from(usersMap.entries()).map(([id, user]) => ({id, ...user}));
 
@@ -123,7 +170,6 @@ onMounted(async () => {
       const statsDay = day.format(appConfig.DATE_FORMAT);
       platesNumbers.value[statsDay] = await usersService.fetchNumberOfPlates(statsDay);
     }
-
     await loadTable();
   } catch (error) {
     console.error('Error during component mounting:', error);
@@ -160,7 +206,7 @@ onMounted(async () => {
       <th colspan="6">KW{{ week.isoWeek() }}</th>
     </tr>
     <tr class="border">
-      <th class="bg-gray-300 px-2 py-1 w-[200px]">User</th>
+      <th class="bg-gray-300 px-2 py-1 w-[200px]">Nutzer</th>
       <th
           class="bg-gray-300 px-2 py-1 w-[200px]"
           v-for="day in moment.range(week.clone().startOf('week'), week.clone().endOf('week').subtract(2, 'day')).by('day')"
@@ -176,7 +222,11 @@ onMounted(async () => {
           class="px-2 py-1 w-[200px] border-l border-r text-center"
           v-for="day in moment.range(week.clone().startOf('week'), week.clone().endOf('week').subtract(2, 'day')).by('day')"
       >
-        <day-select v-bind="dayEntry(day, user.id)" @change="changeUserDayStatus"/>
+        <div class="flex-wrapper">
+          <day-select v-bind="dayEntry(day, user.id)" @change="changeUserDayStatus"/>
+          <checkbox v-model="checkedUsers[`${user.id}_${day.format(appConfig.DATE_FORMAT)}`]"
+                    @click="saveCheckboxValue(day, user.id)" binary/>
+        </div>
       </td>
     </tr>
     <tr class="statistics border-t font-bold">
@@ -189,18 +239,32 @@ onMounted(async () => {
       </td>
     </tr>
     <tr class="statistics border-t font-bold">
-      <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a">Tatsächliche Anzahl der Leute:</td>
+      <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a">Tatsächliche Anzahl der Personen (anhand
+        der benutzten Teller):
+      </td>
       <td
           class="px-2 py-1 w-[200px] border-l border-r text-center" style="background: #fdfdfd8a"
           v-for="day in moment.range(week.clone().startOf('week'), week.clone().endOf('week').subtract(2, 'day')).by('day')"
       >
-        <div class="total-people-group">
+        <div class="flex-wrapper">
           <input
               class="total-people-input"
               :placeholder="platesNumbers[day.format(appConfig.DATE_FORMAT)] || 0"
               v-model="platesNumbers[day.format(appConfig.DATE_FORMAT)]">
           <button class="total-people-button" @click="savePlatesNumber(day)">Ok</button>
         </div>
+      </td>
+    </tr>
+    <tr class="statistics border-t font-bold">
+      <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a">Tatsächliche Anzahl der Personen (anhand
+        der Checkboxen):
+      </td>
+
+      <td
+          class="px-2 py-1 w-[200px] border-l border-r text-center" style="background: #fdfdfd8a"
+          v-for="day in moment.range(week.clone().startOf('week'), week.clone().endOf('week').subtract(2, 'day')).by('day')"
+      >
+        {{ countCheckedCheckboxesPerDay(day) }}
       </td>
     </tr>
     </tbody>
@@ -211,9 +275,10 @@ onMounted(async () => {
 </template>
 
 <style>
-.total-people-group {
+.flex-wrapper {
   display: flex;
   justify-content: space-around;
+  align-items: center;
 }
 
 .total-people-input {
