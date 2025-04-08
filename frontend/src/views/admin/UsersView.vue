@@ -102,11 +102,11 @@ const savePlatesNumber = async (day) => {
     if (success) {
       toast.add({severity: 'success', summary: 'Anzahl der Teller wurde gespeichert!', life: 2000});
     } else {
-      toast.add({severity: 'error', summary: 'Anzahl der Teller könnte nicht gespeichert werden.', life: 2000});
+      toast.add({severity: 'error', summary: 'Anzahl der Teller konnte nicht gespeichert werden.', life: 2000});
     }
   } catch (error) {
     console.error('Fehler beim Speichern der Telleranzahl:', error);
-    toast.add({severity: 'error', summary: 'Beim Speichern der Telleranzahl ist ein Fehler aufgeträtten', life: 2000});
+    toast.add({severity: 'error', summary: 'Beim Speichern der Telleranzahl ist ein Fehler aufgetreten', life: 2000});
   }
 }
 
