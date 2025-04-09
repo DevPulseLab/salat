@@ -134,11 +134,11 @@ const saveCheckboxValue = async (day, userId) => {
     if (success) {
       toast.add({severity: 'success', summary: 'Nutzer wurde eingecheckt!', life: 2000});
     } else {
-      toast.add({severity: 'error', summary: 'Nutzer könnte nicht eingecheckt werden.', life: 2000});
+      toast.add({severity: 'error', summary: 'Nutzer konnte nicht eingecheckt werden.', life: 2000});
     }
   } catch (error) {
     console.error('Error checking user:', error);
-    toast.add({severity: 'error', summary: 'Error. Nutzer könnte nicht eingecheckt werden.', life: 2000});
+    toast.add({severity: 'error', summary: 'Error. Nutzer konnte nicht eingecheckt werden.', life: 2000});
   }
 };
 

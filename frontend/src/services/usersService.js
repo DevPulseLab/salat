@@ -111,7 +111,12 @@ const useUsersService = () => {
 
     const getCheckboxValue = async (startDate, endDate) => {
         try {
-            const response = await http.get('/api/admin/calendar/get-visit-stats-list?start_date=' + startDate.format(appConfig.DATE_FORMAT) + '&end_date=' + endDate.format(appConfig.DATE_FORMAT))
+            const response = await http.get('/api/admin/calendar/get-visit-stats-list', {
+                params: {
+                    start_date: startDate.format(appConfig.DATE_FORMAT),
+                    end_date: endDate.format(appConfig.DATE_FORMAT)
+                }
+            })
             return response.data.calendarEntries;
         } catch (error) {
             console.error('Can not become visit', error);
