@@ -48,7 +48,7 @@ func (repo *UserRepository) AuthenticateUser(username, password string) (string,
 func (repo *UserRepository) GetAllUsers() []models.User {
 	var users []models.User
 
-	repo.DB.Find(&users)
+	repo.DB.Order("username").Find(&users)
 
 	return users
 }
