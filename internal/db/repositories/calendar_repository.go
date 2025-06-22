@@ -8,6 +8,7 @@ import (
 	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/enum"
 	"github.com/DevPulseLab/salat/internal/helper"
+	"github.com/uniplaces/carbon"
 	"gorm.io/gorm"
 )
 
@@ -48,13 +49,14 @@ func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) e
 }
 
 func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate time.Time, closeIntervals []dto.CloseInterval) ([]models.Calendar, []error) {
-	currDate := startDate
-	nowPlus30Days := time.Now().AddDate(0, 0, 30)
+	currDate := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.Local)
+	now := carbon.Now().Time
+	nowPlus30Days := carbon.Now().AddDate(0, 0, 30)
 
 	errors := []error{}
 	addedDays := []models.Calendar{}
 
-	for endDate.Sub(currDate).Hours() > 0 {
+	for endDate.Sub(currDate).Hours() >= 0 {
 		if repo.dateHelper.IsWeekend(currDate) {
 			currDate = currDate.AddDate(0, 0, 1)
 			continue
@@ -66,7 +68,7 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 		}
 
 		status := enum.Approved
-		if currDate.Before(time.Now()) || currDate.After(nowPlus30Days) {
+		if currDate == now || currDate.Before(now) || currDate.After(nowPlus30Days) {
 			status = enum.Rejected
 		} else if repo.dateHelper.IsDateInCurrentWeek(currDate) {
 			status = enum.Reserved

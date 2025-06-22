@@ -27,7 +27,7 @@ func (handler *RequestHelper) GetStartDateFromRequest(ctx *gin.Context) (time.Ti
 		}
 	}
 
-	return time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location()), nil
+	return time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.Local), nil
 }
 
 func (handler *RequestHelper) GetEndDateFromRequest(ctx *gin.Context) (time.Time, error) {
@@ -44,5 +44,5 @@ func (handler *RequestHelper) GetEndDateFromRequest(ctx *gin.Context) (time.Time
 		}
 	}
 
-	return time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23, 59, 59, 999999999, endDate.Location()), nil
+	return time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23, 59, 59, 999999999, time.Local), nil
 }

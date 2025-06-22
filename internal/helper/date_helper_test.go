@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/uniplaces/carbon"
 )
 
@@ -142,4 +143,73 @@ func TestIsDateNextWeekAndNowAfterFriday(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestIsWeekend(t *testing.T) {
+	dateHelper := NewDateHelper()
+
+	tests := []struct {
+		inputDate time.Time
+		expected  bool
+	}{
+		{time.Date(2025, time.May, 2, 0, 0, 0, 0, time.UTC), false},
+		{time.Date(2025, time.May, 3, 0, 0, 0, 0, time.UTC), true},
+		{time.Date(2025, time.May, 4, 0, 0, 0, 0, time.UTC), true},
+		{time.Date(2025, time.May, 5, 0, 0, 0, 0, time.UTC), false},
+	}
+
+	for _, test := range tests {
+		result := dateHelper.IsWeekend(test.inputDate)
+		if result != test.expected {
+			t.Errorf("Wrong result for: %v", test.inputDate)
+		}
+	}
+}
+
+func TestIsDateInCloseIntervals(t *testing.T) {
+	dataHelper := NewDateHelper()
+
+	tests := []struct {
+		inputDate      time.Time
+		closeIntervals []dto.CloseInterval
+		expected       bool
+	}{
+		{
+			parseDate("2025-04-29"),
+			[]dto.CloseInterval{{Id: 1, StartDate: parseDate("2025-05-01"), EndDate: parseDate("2025-05-04")}},
+			false,
+		},
+		{
+			parseDate("2025-05-01"),
+			[]dto.CloseInterval{{Id: 1, StartDate: parseDate("2025-05-01"), EndDate: parseDate("2025-05-04")}},
+			true,
+		},
+		{
+			parseDate("2025-05-02"),
+			[]dto.CloseInterval{{Id: 1, StartDate: parseDate("2025-05-01"), EndDate: parseDate("2025-05-04")}},
+			true,
+		},
+		{
+			parseDate("2025-05-04"),
+			[]dto.CloseInterval{{Id: 1, StartDate: parseDate("2025-05-01"), EndDate: parseDate("2025-05-04")}},
+			true,
+		},
+		{
+			parseDate("2025-05-05"),
+			[]dto.CloseInterval{{Id: 1, StartDate: parseDate("2025-05-01"), EndDate: parseDate("2025-05-04")}},
+			false,
+		},
+	}
+
+	for _, test := range tests {
+		result := dataHelper.IsDateInCloseIntervals(test.inputDate, test.closeIntervals)
+		if result != test.expected {
+			t.Errorf("Wrong result")
+		}
+	}
+}
+
+func parseDate(dateString string) time.Time {
+	res, _ := time.ParseInLocation("2006-01-02", dateString, time.Local)
+	return res
 }

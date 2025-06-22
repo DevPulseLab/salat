@@ -74,5 +74,5 @@ func getStatsDateFromRequest(ctx *gin.Context) (time.Time, error) {
 		}
 	}
 
-	return time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location()), nil
+	return time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.Local), nil
 }
