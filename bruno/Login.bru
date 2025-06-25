@@ -16,3 +16,7 @@ body:json {
     "password": "admin"
   }
 }
+
+script:post-response {
+  bru.setEnvVar('auth-token', res.body.token);
+}

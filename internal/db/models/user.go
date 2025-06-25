@@ -10,9 +10,10 @@ const (
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"size:255;not null;unique" json:"username"`
-	Password string `gorm:"size:255;not null" json:"password"`
-	Role     string `gorm:"default:guest;not null"`
+	Username    string `gorm:"size:255;not null;unique" json:"username"`
+	Password    string `gorm:"size:255;not null" json:"password"`
+	Role        string `gorm:"default:guest;not null"`
+	PenaltyCard string `gorm:"null"`
 
 	Data []Calendar `gorm:"foreignKey:UserId" json:"calendars"`
 }

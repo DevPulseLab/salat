@@ -1,0 +1,22 @@
+meta {
+  name: Set penalty card
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/users/set-penalty-card
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{auth-token}}
+}
+
+body:json {
+  {
+    "cardType": "yellow",
+    "userId": 2
+  }
+}

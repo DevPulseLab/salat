@@ -35,6 +35,7 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	router.POST("/api/login", authHandler.Login)
 
 	router.GET("/api/users/list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userHandler.GetUserList)
+	router.POST("/api/users/set-penalty-card", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userHandler.SetPenaltyCard)
 	router.GET("/api/user/calendar/all-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.AllUserList)
 
 	router.POST("/api/user/calendar/add", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.Add)

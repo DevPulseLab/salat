@@ -70,3 +70,14 @@ func (repo *UserRepository) FindByUsername(username string) (*models.User, error
 
 	return &user, nil
 }
+
+func (repo *UserRepository) SetPenaltyCard(userId uint, penaltyCardType string) error {
+	var user models.User
+	if err := repo.DB.Where("id = ?", userId).First(&user).Error; err != nil {
+		return errors.New("user not found")
+	}
+
+	user.PenaltyCard = penaltyCardType
+
+	return repo.DB.Save(&user).Error
+}
