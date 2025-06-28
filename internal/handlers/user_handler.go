@@ -25,9 +25,10 @@ func (handler *UserHandler) GetUserList(ctx *gin.Context) {
 	userDtos := []dto.User{}
 	for _, user := range users {
 		userDto := dto.User{
-			Id:       user.ID,
-			Username: user.Username,
-			Role:     user.Role,
+			Id:          user.ID,
+			Username:    user.Username,
+			Role:        user.Role,
+			PenaltyCard: user.PenaltyCard,
 		}
 		userDtos = append(userDtos, userDto)
 	}
