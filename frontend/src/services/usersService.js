@@ -135,6 +135,18 @@ const useUsersService = () => {
         return firstName.toUpperCase() + ((lastName) ? '. ' + lastName.charAt(0).toUpperCase() + lastName.slice(1) : '');
     }
 
+    const setPenaltyCard = async (cardType, userId) => {
+        try {
+            const response = await http.post('/api/users/set-penalty-card', {
+                cardType,
+                userId
+            })
+            return response.status === 200;
+        } catch (error) {
+            console.error('Can not set card', error)
+        }
+    }
+
     return {
         changeEntryStatus,
         fetchUsers,
@@ -146,7 +158,8 @@ const useUsersService = () => {
         removeAbsence,
         setCheckboxValue,
         getCheckboxValue,
-        getNameFromEmail
+        getNameFromEmail,
+        setPenaltyCard
     }
 }
 

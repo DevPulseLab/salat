@@ -2,6 +2,7 @@
 import moment from 'moment'
 import {inject, onMounted, ref, computed} from 'vue'
 import useUsersService from '@/services/usersService.js'
+import CardSelector from '@/components/CardSelector.vue'
 import {useToast} from 'primevue/usetoast'
 
 import DatePicker from 'primevue/datepicker'
@@ -212,7 +213,7 @@ onMounted(async () => {
   </div>
 
   <div class="flex justify-center my-4">
-    <InputText v-model="searchQuery" placeholder="Nutzer suchen..." class="w-1/3" />
+    <InputText v-model="searchQuery" placeholder="Nutzer suchen..." class="w-1/3"/>
   </div>
 
 
@@ -233,7 +234,13 @@ onMounted(async () => {
     </thead>
     <tbody>
     <tr class="border-b" v-for="user in filteredUsers" :key="user.id">
-      <td class="px-2 py-1 w-[200px] border-l">{{ usersService.getNameFromEmail(user) }}</td>
+      <td class="px-2 py-1 w-[200px] border-l">{{ usersService.getNameFromEmail(user) }}
+        <CardSelector
+            :initialColor="user.penaltyCard"
+            :userId="user.id"
+            @card-updated="(color) => user.penaltyCard = color"
+        />
+      </td>
       <td
           class="px-2 py-1 w-[200px] border-l border-r text-center"
           v-for="day in moment.range(week.clone().startOf('week'), week.clone().endOf('week').subtract(2, 'day')).by('day')"
@@ -272,6 +279,7 @@ onMounted(async () => {
       </td>
     </tr>
     <tr class="statistics border-t font-bold">
+      <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a"></td>
       <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a">Tatsächliche Anzahl der Personen (anhand
         der Checkboxen):
       </td>

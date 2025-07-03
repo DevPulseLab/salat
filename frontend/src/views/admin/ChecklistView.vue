@@ -2,6 +2,7 @@
 import {inject, onMounted, ref, computed} from 'vue'
 import moment from 'moment'
 import useUsersService from '@/services/usersService.js'
+import CardSelector from '@/components/CardSelector.vue'
 import Checkbox from 'primevue/checkbox'
 import {useToast} from 'primevue/usetoast'
 import InputText from 'primevue/inputtext'
@@ -83,7 +84,14 @@ onMounted(async () => {
       </thead>
       <tbody>
       <tr v-for="user in filteredUsers">
-        <td class="px-2 py-1 w-[200px] border">{{ usersService.getNameFromEmail(user) }}</td>
+        <td class="px-2 py-1 w-[200px] border">
+          {{ usersService.getNameFromEmail(user) }}
+          <CardSelector
+              :initialColor="user.penaltyCard"
+              :userId="user.id"
+              @card-updated="(color) => user.penaltyCard = color"
+          />
+        </td>
         <td class="px-2 py-1 w-[150px] border text-center">{{ appConfig.calendar.statusText[entries.get(today.format(appConfig.DATE_FORMAT) + '_' + user.id)?.status] ?? '---' }}</td>
         <td class="px-2 py-1 w-[100px] border text-center">
           <Checkbox v-model="checkedUsers" :value="user.id" @click="checkUser(user.id)" size="large" />
