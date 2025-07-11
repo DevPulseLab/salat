@@ -279,7 +279,6 @@ onMounted(async () => {
       </td>
     </tr>
     <tr class="statistics border-t font-bold">
-      <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a"></td>
       <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a">Tatsächliche Anzahl der Personen (anhand
         der Checkboxen):
       </td>

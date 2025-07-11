@@ -10,7 +10,6 @@ const props = defineProps({
   },
   initialColor: {
     type: String,
-    default: ''
   }
 })
 
@@ -21,6 +20,28 @@ const showCardPopup = ref(false)
 
 const usersService = useUsersService()
 const toast = useToast()
+
+const beforeEnter = (el) => {
+  el.style.opacity = 0
+  el.style.transform = 'scaleX(0.2)'
+  el.style.transformOrigin = 'left center'
+}
+
+const enter = (el, done) => {
+  el.style.transition = 'all 200ms ease'
+  requestAnimationFrame(() => {
+    el.style.opacity = 1
+    el.style.transform = 'scaleX(1)'
+  })
+  setTimeout(done, 200)
+}
+
+const leave = (el, done) => {
+  el.style.transition = 'all 200ms ease'
+  el.style.opacity = 0
+  el.style.transform = 'scaleX(0.2)'
+  setTimeout(done, 200)
+}
 
 const togglePopup = () => {
   showCardPopup.value = !showCardPopup.value
@@ -58,23 +79,32 @@ const selectCardColor = async (color) => {
     ></button>
 
     <!--pop-up-->
+    <transition
+        name="popup-fade"
+        @before-enter="beforeEnter"
+        @enter="enter"
+        @leave="leave"
+    >
     <div
         v-if="showCardPopup"
-        class="absolute z-10 mt-2 bg-white shadow-md rounded p-4 w-max min-w-[180px]"
+        class="absolute z-10 bg-white shadow-md rounded p-1 pop-up"
     >
-      <div class="flex justify-end mb-2">
-        <button @click="closePopup" class="text-gray-500 hover:text-black text-sm font-bold">×</button>
-      </div>
       <div class="flex space-x-4 justify-center">
         <button class="white-card" @click="selectCardColor('')"></button>
         <button class="yellow-card" @click="selectCardColor('yellow')"></button>
         <button class="red-card" @click="selectCardColor('red')"></button>
+        <button @click="closePopup" class="text-gray-500 hover:text-black text-sm font-bold">×</button>
       </div>
     </div>
+    </transition>
   </div>
 </template>
 
 <style scoped>
+.pop-up {
+  top: 0;
+}
+
 .white-card,
 .yellow-card,
 .red-card {
