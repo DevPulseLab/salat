@@ -121,14 +121,14 @@ func TestAddCalendarEntry(t *testing.T) {
 	repo := NewCalendarRepository(db, helper.NewDateHelper())
 
 	tests := []struct {
-		userId         uint
+		user           models.User
 		startDate      time.Time
 		endDate        time.Time
 		closeIntervals []dto.CloseInterval
 		expected       []models.Calendar
 	}{
 		{
-			userId:         1,
+			user:           models.User{Model: gorm.Model{ID: 1}},
 			startDate:      parseDate("2025-05-01"),
 			endDate:        parseDate("2025-05-01"),
 			closeIntervals: []dto.CloseInterval{},
@@ -137,7 +137,7 @@ func TestAddCalendarEntry(t *testing.T) {
 			},
 		},
 		{
-			userId:         1,
+			user:           models.User{Model: gorm.Model{ID: 1}},
 			startDate:      parseDate("2025-05-02"),
 			endDate:        parseDate("2025-05-03"),
 			closeIntervals: []dto.CloseInterval{},
@@ -146,7 +146,7 @@ func TestAddCalendarEntry(t *testing.T) {
 			},
 		},
 		{
-			userId:         1,
+			user:           models.User{Model: gorm.Model{ID: 1}},
 			startDate:      parseDate("2025-05-05"),
 			endDate:        parseDate("2025-05-08"),
 			closeIntervals: []dto.CloseInterval{},
@@ -158,7 +158,7 @@ func TestAddCalendarEntry(t *testing.T) {
 			},
 		},
 		{
-			userId:         1,
+			user:           models.User{Model: gorm.Model{ID: 1}},
 			startDate:      parseDate("2025-05-12"),
 			endDate:        parseDateTime("2025-05-15 10:00:00"),
 			closeIntervals: []dto.CloseInterval{},
@@ -170,7 +170,7 @@ func TestAddCalendarEntry(t *testing.T) {
 			},
 		},
 		{
-			userId:         1,
+			user:           models.User{Model: gorm.Model{ID: 1}},
 			startDate:      parseDateTime("2025-05-19 00:00:00"),
 			endDate:        parseDateTime("2025-05-21 00:00:00"),
 			closeIntervals: []dto.CloseInterval{},
@@ -181,7 +181,7 @@ func TestAddCalendarEntry(t *testing.T) {
 			},
 		},
 		{
-			userId:         1,
+			user:           models.User{Model: gorm.Model{ID: 1}},
 			startDate:      parseDateTime("2025-05-27 12:00:00"),
 			endDate:        parseDateTime("2025-05-30 10:00:00"),
 			closeIntervals: []dto.CloseInterval{},
@@ -193,7 +193,7 @@ func TestAddCalendarEntry(t *testing.T) {
 			},
 		},
 		{
-			userId:         1,
+			user:           models.User{Model: gorm.Model{ID: 1}},
 			startDate:      parseDateTime("2025-05-22 00:00:00"),
 			endDate:        parseDateTime("2025-05-26 00:00:00"),
 			closeIntervals: []dto.CloseInterval{},
@@ -204,7 +204,7 @@ func TestAddCalendarEntry(t *testing.T) {
 			},
 		},
 		{
-			userId:    1,
+			user:      models.User{Model: gorm.Model{ID: 1}},
 			startDate: parseDateTime("2025-06-02 00:00:00"),
 			endDate:   parseDateTime("2025-06-05 00:00:00"),
 			closeIntervals: []dto.CloseInterval{
@@ -215,11 +215,31 @@ func TestAddCalendarEntry(t *testing.T) {
 				{Date: parseDate("2025-06-05"), Status: string(enum.Rejected)},
 			},
 		},
+		{
+			user:           models.User{Model: gorm.Model{ID: 2}, PenaltyCard: string(enum.Yellow)},
+			startDate:      parseDateTime("2025-05-22 00:00:00"),
+			endDate:        parseDateTime("2025-05-23 00:00:00"),
+			closeIntervals: []dto.CloseInterval{},
+			expected: []models.Calendar{
+				{Date: parseDate("2025-05-22"), Status: string(enum.Reserved)},
+				{Date: parseDate("2025-05-23"), Status: string(enum.Reserved)},
+			},
+		},
+		{
+			user:           models.User{Model: gorm.Model{ID: 2}, PenaltyCard: string(enum.Red)},
+			startDate:      parseDateTime("2025-05-26 00:00:00"),
+			endDate:        parseDateTime("2025-05-27 00:00:00"),
+			closeIntervals: []dto.CloseInterval{},
+			expected: []models.Calendar{
+				{Date: parseDate("2025-05-26"), Status: string(enum.Rejected)},
+				{Date: parseDate("2025-05-27"), Status: string(enum.Rejected)},
+			},
+		},
 	}
 
 	for testNum, test := range tests {
-		t.Run(fmt.Sprintf("test userId: %v startDate: %v endDate: %v", test.userId, test.startDate, test.endDate), func(t *testing.T) {
-			result, errors := repo.AddCalendarEntry(test.userId, test.startDate, test.endDate, test.closeIntervals)
+		t.Run(fmt.Sprintf("test userId: %v startDate: %v endDate: %v", test.user.ID, test.startDate, test.endDate), func(t *testing.T) {
+			result, errors := repo.AddCalendarEntry(&test.user, test.startDate, test.endDate, test.closeIntervals)
 			if len(errors) != 0 {
 				t.Errorf("Return errors: %v", errors)
 			}

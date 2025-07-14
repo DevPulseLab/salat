@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/DevPulseLab/salat/internal/builder"
+	"github.com/DevPulseLab/salat/internal/db/models"
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/forms"
 	"github.com/DevPulseLab/salat/internal/helper"
@@ -40,15 +41,16 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 		return
 	}
 
-	userId, err := handler.UserRepo.GetIdByUsername(ctx.GetString("username"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	user := ctx.MustGet("user").(*models.User)
 
 	closeIntervalModels := handler.CloseIntervalRepo.GetAllEntriesForInterval(form.StartDate, form.EndDate)
 
-	addedCalendarModels, errors := handler.CalendarRepo.AddCalendarEntry(userId, form.StartDate, form.EndDate, handler.CloseIntervalDtoBuilder.BuildFromCloseIntervalModel(closeIntervalModels))
+	addedCalendarModels, errors := handler.CalendarRepo.AddCalendarEntry(
+		user,
+		form.StartDate,
+		form.EndDate,
+		handler.CloseIntervalDtoBuilder.BuildFromCloseIntervalModel(closeIntervalModels))
+
 	if len(errors) == 0 {
 		calendarDtos := handler.CalendarDtoBuilder.BuildFromCalendarModels(addedCalendarModels)
 

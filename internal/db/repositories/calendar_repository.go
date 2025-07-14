@@ -48,7 +48,7 @@ func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) e
 	return result.Error
 }
 
-func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate time.Time, closeIntervals []dto.CloseInterval) ([]models.Calendar, []error) {
+func (repo *CalendarRepository) AddCalendarEntry(user *models.User, startDate, endDate time.Time, closeIntervals []dto.CloseInterval) ([]models.Calendar, []error) {
 	currDate := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.Local)
 	now := carbon.Now().Time
 	nowPlus30Days := carbon.Now().AddDate(0, 0, 30)
@@ -68,7 +68,11 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 		}
 
 		status := enum.Approved
-		if currDate == now || currDate.Before(now) || currDate.After(nowPlus30Days) {
+		if user.PenaltyCard == string(enum.Yellow) {
+			status = enum.Reserved
+		} else if user.PenaltyCard == string(enum.Red) {
+			status = enum.Rejected
+		} else if currDate == now || currDate.Before(now) || currDate.After(nowPlus30Days) {
 			status = enum.Rejected
 		} else if repo.dateHelper.IsDateInCurrentWeek(currDate) {
 			status = enum.Reserved
@@ -77,7 +81,7 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 		}
 
 		var deletedCalendarEntry models.Calendar
-		if err := repo.DB.Unscoped().Where("user_id = ? AND date = ? AND deleted_at IS NOT NULL", userId, currDate).First(&deletedCalendarEntry).Error; err == nil {
+		if err := repo.DB.Unscoped().Where("user_id = ? AND date = ? AND deleted_at IS NOT NULL", user.ID, currDate).First(&deletedCalendarEntry).Error; err == nil {
 			repo.DB.Unscoped().Model(&deletedCalendarEntry).Update("deleted_at", nil)
 			deletedCalendarEntry.Status = string(status)
 			saveErr := repo.DB.Save(deletedCalendarEntry).Error
@@ -89,7 +93,7 @@ func (repo *CalendarRepository) AddCalendarEntry(userId uint, startDate, endDate
 			continue
 		}
 
-		calendarModel := models.Calendar{UserId: userId, Date: currDate, Status: string(status)}
+		calendarModel := models.Calendar{UserId: user.ID, Date: currDate, Status: string(status)}
 		insertErr := repo.DB.Create(&calendarModel).Error
 		if insertErr != nil {
 			errors = append(errors, insertErr)

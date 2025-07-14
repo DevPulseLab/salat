@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/DevPulseLab/salat/internal/db/models"
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/forms"
@@ -50,4 +51,10 @@ func (handler *UserHandler) SetPenaltyCard(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+func (handler *UserHandler) GetCurrentUserInfo(ctx *gin.Context) {
+	user := ctx.MustGet("user").(*models.User)
+
+	ctx.JSON(http.StatusOK, gin.H{"penaltyCard": user.PenaltyCard})
 }
