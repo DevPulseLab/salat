@@ -6,6 +6,7 @@ import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 
 import AppMessage from '@/components/AppMessage.vue'
+import PenaltyCard from '@/components/PenaltyCard.vue'
 import {getRoutes} from '@/routes.js'
 
 import {useRouter, useRoute} from 'vue-router'
@@ -84,6 +85,7 @@ watch(userStore.isAuthenticated, isAuthenticated => {
     <Toast />
     <ConfirmDialog />
     <AppMessage />
+    <PenaltyCard />
 
     <div v-if="!showTokenExpired">
       <RouterView />

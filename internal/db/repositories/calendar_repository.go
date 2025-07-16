@@ -72,7 +72,7 @@ func (repo *CalendarRepository) AddCalendarEntry(user *models.User, startDate, e
 			status = enum.Reserved
 		} else if user.PenaltyCard == string(enum.Red) {
 			status = enum.Rejected
-		} else if currDate == now || currDate.Before(now) || currDate.After(nowPlus30Days) {
+		} else if currDate.Equal(now) || currDate.Before(now) || currDate.After(nowPlus30Days) {
 			status = enum.Rejected
 		} else if repo.dateHelper.IsDateInCurrentWeek(currDate) {
 			status = enum.Reserved

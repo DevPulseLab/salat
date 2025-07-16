@@ -14,8 +14,17 @@ const useUserService = () => {
         return true
     }
 
+    const currentUserInfo = async () => {
+        const response = await http.get('/api/users/me')
+        if (response.status !== 200) {
+            return null
+        }
+        return response.data
+    }
+
     return {
         login,
+        currentUserInfo,
     }
 }
 
