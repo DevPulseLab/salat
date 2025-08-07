@@ -14,6 +14,11 @@ type Config struct {
 	Jwt struct {
 		Secret string `yaml:"secret"`
 	} `yaml:"jwt"`
+	Slack struct {
+		Token            string `yaml:"token"`
+		BroadcastChannel string `yaml:"broadcast_channel"`
+		UserAdminEmail   string `yaml:"user_admin_email"`
+	} `yaml:"slack"`
 }
 
 func New() *Config {

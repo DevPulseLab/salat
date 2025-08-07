@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/DevPulseLab/salat/internal/db/models"
@@ -35,17 +36,30 @@ func (repo *CalendarRepository) Remove(model *models.Calendar) {
 	repo.DB.Delete(&model)
 }
 
-func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) error {
+func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) (models.Calendar, error) {
 	var calendarEntry models.Calendar
 	result := repo.DB.Where("id = ? AND deleted_at IS NULL", modelId).First(&calendarEntry)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return result.Error
+		return calendarEntry, result.Error
 	}
 
 	calendarEntry.Status = status
 	result = repo.DB.Save(&calendarEntry)
 
-	return result.Error
+	return calendarEntry, result.Error
+}
+
+func (repo *CalendarRepository) CountReservedForDate(date *carbon.Carbon) int64 {
+	var count int64
+	result := repo.DB.Model(&models.Calendar{}).
+		Where("status = ? AND DATE(date) = DATE(?) AND deleted_at IS NULL", string(enum.Reserved), date).
+		Count(&count)
+	if result.Error != nil {
+		log.Printf("Error: %v", result.Error)
+		return 0
+	}
+
+	return count
 }
 
 func (repo *CalendarRepository) AddCalendarEntry(user *models.User, startDate, endDate time.Time, closeIntervals []dto.CloseInterval) ([]models.Calendar, []error) {

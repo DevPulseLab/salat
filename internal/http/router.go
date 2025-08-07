@@ -16,9 +16,9 @@ func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
 	roleMiddleware := middlewares.NewRoleMiddleware()
 	currentUserMiddleware := middlewares.NewCurrentUserMiddleware(db)
 	authHandler := handlers.NewAuthHandler(db, config)
-	userHandler := handlers.NewUserHandler(db)
+	userHandler := handlers.NewUserHandler(db, config)
 	userCalendarHandler := handlers.NewUserCalendarHandler(db)
-	adminCalendarHandler := handlers.NewAdminCalendarHandler(db)
+	adminCalendarHandler := handlers.NewAdminCalendarHandler(db, config)
 	realDayStatsHandler := handlers.NewRealDayStatsHandler(db)
 
 	router.Use(middlewares.CORSMiddleware())

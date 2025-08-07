@@ -10,7 +10,7 @@ const (
 
 type User struct {
 	gorm.Model
-	Username    string `gorm:"size:255;not null;unique" json:"username"`
+	Username    string `gorm:"size:255;not null;unique" json:"username"` // Email
 	Password    string `gorm:"size:255;not null" json:"password"`
 	Role        string `gorm:"default:guest;not null"`
 	PenaltyCard string `gorm:"null"`

@@ -4,9 +4,12 @@ import (
 	"net/http"
 
 	"github.com/DevPulseLab/salat/internal/builder"
+	"github.com/DevPulseLab/salat/internal/config"
 	"github.com/DevPulseLab/salat/internal/db/repositories"
+	"github.com/DevPulseLab/salat/internal/enum"
 	"github.com/DevPulseLab/salat/internal/forms"
 	"github.com/DevPulseLab/salat/internal/helper"
+	"github.com/DevPulseLab/salat/internal/service"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -18,9 +21,10 @@ type AdminCalendarHandler struct {
 	RequestHelper        *helper.RequestHelper
 	CalendarDtoBuilder   *builder.CalendarDtoBuilder
 	VisitStatsDtoBuilder *builder.VisitStatsDtoBuilder
+	MessagingService     *service.MessagingService
 }
 
-func NewAdminCalendarHandler(db *gorm.DB) *AdminCalendarHandler {
+func NewAdminCalendarHandler(db *gorm.DB, config *config.Config) *AdminCalendarHandler {
 	dateHelper := helper.NewDateHelper()
 	closeIntervalRepo := repositories.NewCloseIntervalsRepository(db)
 	calendarRepo := repositories.NewCalendarRepository(db, dateHelper)
@@ -28,7 +32,15 @@ func NewAdminCalendarHandler(db *gorm.DB) *AdminCalendarHandler {
 	requestHelper := helper.NewRequestHelper()
 	calendarDtoBuilder := builder.NewCalendarDtoBuilder()
 	visitStatsDtoBuilder := builder.NewVisitStatsDtoBuilder()
-	return &AdminCalendarHandler{calendarRepo, closeIntervalRepo, visitStatsRepo, requestHelper, calendarDtoBuilder, visitStatsDtoBuilder}
+	ms := service.NewMessagingService(config.Slack.Token, db)
+	return &AdminCalendarHandler{
+		calendarRepo,
+		closeIntervalRepo,
+		visitStatsRepo,
+		requestHelper,
+		calendarDtoBuilder,
+		visitStatsDtoBuilder,
+		ms}
 }
 
 func (handler *AdminCalendarHandler) AllUserList(ctx *gin.Context) {
@@ -58,10 +70,14 @@ func (handler *AdminCalendarHandler) ChangeEntryStatus(ctx *gin.Context) {
 		return
 	}
 
-	err := handler.CalendarRepo.ChangeEntryStatus(form.CalendarEntryId, form.NewStatus)
+	calendarModel, err := handler.CalendarRepo.ChangeEntryStatus(form.CalendarEntryId, form.NewStatus)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Calendar entry not changed"})
 		return
+	}
+
+	if enum.CalendarStatus(calendarModel.Status) == enum.Approved {
+		handler.MessagingService.SendPrivateMessage(calendarModel.UserId, "Deine Anfrage wurde genehmigt, du darfst zur Salatbar kommen")
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})

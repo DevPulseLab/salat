@@ -3,21 +3,25 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/DevPulseLab/salat/internal/config"
 	"github.com/DevPulseLab/salat/internal/db/models"
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/forms"
+	"github.com/DevPulseLab/salat/internal/service"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type UserHandler struct {
-	UserRepo *repositories.UserRepository
+	UserRepo         *repositories.UserRepository
+	MessagingService *service.MessagingService
 }
 
-func NewUserHandler(db *gorm.DB) *UserHandler {
+func NewUserHandler(db *gorm.DB, config *config.Config) *UserHandler {
 	userRepo := repositories.NewUserRepository(db)
-	return &UserHandler{userRepo}
+	ms := service.NewMessagingService(config.Slack.Token, db)
+	return &UserHandler{userRepo, ms}
 }
 
 func (handler *UserHandler) GetUserList(ctx *gin.Context) {
@@ -48,6 +52,10 @@ func (handler *UserHandler) SetPenaltyCard(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not set penalty card"})
 		return
+	}
+
+	if form.CardType != "" {
+		handler.MessagingService.SendPrivateMessage(form.UserId, "Du hast eine Strafkarte bekommen: "+form.CardType)
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})

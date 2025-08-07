@@ -3,3 +3,8 @@ database:
 
 jwt:
   secret: jwt_secret
+
+slack:
+  token:
+  broadcast_channel:
+  user_admin_email:

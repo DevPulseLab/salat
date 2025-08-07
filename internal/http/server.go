@@ -6,17 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Run() error {
-	// Load configuration
-	configuration := config.New()
-
-	// Init database
-	dbconn.OpenDB(configuration.Database.Dsn)
-	dbconn.RunMigrate(dbconn.DBSystem)
-
+func Run(config *config.Config) error {
 	// Init router
 	router := gin.Default()
-	InitializeRoutes(router, dbconn.DBSystem, configuration)
+	InitializeRoutes(router, dbconn.DBSystem, config)
 
 	return router.Run()
 }
