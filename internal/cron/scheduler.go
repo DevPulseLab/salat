@@ -12,8 +12,8 @@ var c *cron.Cron
 func Start(config *config.Config, db *gorm.DB) {
 	c = cron.New()
 
-	c.AddFunc("0 9 * * 4,5", task.NewSendMessageToChanelTaks(config, db).Execute)
-	c.AddFunc("0 13 * * 4,5", task.NewSendMessageToChanelTaks(config, db).Execute)
+	c.AddFunc("0 13 * * 4", task.NewSendMessageToChanelTaks(config, db).Execute)
+	c.AddFunc("0 9 * * 5", task.NewSendMessageToChanelTaks(config, db).Execute)
 
 	c.AddFunc("0 8-16 * * *", task.NewCheckReservedRequests(config, db).Execute)
 

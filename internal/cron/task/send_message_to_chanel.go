@@ -19,5 +19,5 @@ func NewSendMessageToChanelTaks(config *config.Config, db *gorm.DB) *SendMessage
 func (task *SendMessageToChanelTaks) Execute() {
 	ms := task.MessagingService
 
-	ms.PostToChannel(task.Config.Slack.BroadcastChannel, "Tragt euch bitte in die Saltabar-App ein")
+	ms.PostToChannel(task.Config.Slack.BroadcastChannel, ":green_salad: Bitte denkt an Euren Eintrag in die Satatbar-App (https://salatbar.secova.net/) DANKESCHÖN :green_salad:")
 }

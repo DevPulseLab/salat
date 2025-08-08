@@ -27,6 +27,6 @@ func (task *CheckReservedRequests) Execute() {
 	if countReservedRequests > 0 {
 		task.MessagingService.SendPrivateMessageToEmail(
 			task.Config.Slack.UserAdminEmail,
-			"Es gibt noch nicht genehmigte einträge")
+			"Es gibt noch ungenehmigte Einträge")
 	}
 }
