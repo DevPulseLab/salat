@@ -6,13 +6,14 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/go-cmp v0.5.5
+	github.com/robfig/cron/v3 v3.0.1
+	github.com/sirupsen/logrus v1.9.3
+	github.com/slack-go/slack v0.17.3
 	github.com/uniplaces/carbon v0.2.2
 	golang.org/x/crypto v0.37.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
-	github.com/robfig/cron/v3 v3.0.1
-	github.com/slack-go/slack v0.17.3
 )
 
 require (

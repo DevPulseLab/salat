@@ -4,6 +4,10 @@ database:
 jwt:
   secret: jwt_secret
 
+error:
+  file: log/errors.log
+  logLevel: error
+
 slack:
   token:
   broadcast_channel:

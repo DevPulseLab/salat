@@ -52,7 +52,7 @@ func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) (
 func (repo *CalendarRepository) CountReservedForDate(date *carbon.Carbon) int64 {
 	var count int64
 	result := repo.DB.Model(&models.Calendar{}).
-		Where("status = ? AND DATE(date) = DATE(?) AND deleted_at IS NULL", string(enum.Reserved), date).
+		Where("status = ? AND DATE(date) = DATE(?) AND deleted_at IS NULL", string(enum.Reserved), date.Time).
 		Count(&count)
 	if result.Error != nil {
 		log.Printf("Error: %v", result.Error)

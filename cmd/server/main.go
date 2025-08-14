@@ -1,24 +1,40 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"os"
 
 	"github.com/DevPulseLab/salat/internal/config"
 	"github.com/DevPulseLab/salat/internal/cron"
 	"github.com/DevPulseLab/salat/internal/db/dbconn"
 	"github.com/DevPulseLab/salat/internal/http"
+	"github.com/DevPulseLab/salat/internal/service"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	// Load configuration
 	config := config.New()
 
-	// Init database
+	level, err := logrus.ParseLevel(config.ErrorLog.Level)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unknown Log-Level in config: %v\n", err)
+		os.Exit(1)
+	}
+
+	loggerService := service.NewErrorLogger(config.ErrorLog.File, true, level)
+	log, err := loggerService.GetDefaultLogger()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Logger-Init-Fehler: %v\n", err)
+		os.Exit(1)
+	}
+	defer loggerService.Close()
+
 	dbconn.OpenDB(config.Database.Dsn)
 	dbconn.RunMigrate(dbconn.DBSystem)
 
-	cron.Start(config, dbconn.DBSystem)
+	cron.Start(config, dbconn.DBSystem, log)
+
 	if err := http.Run(config); err != nil {
-		log.Fatalln(err)
+		log.Fatalf("HTTP-Server-Fehler: %v", err)
 	}
 }

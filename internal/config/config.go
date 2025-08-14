@@ -14,6 +14,10 @@ type Config struct {
 	Jwt struct {
 		Secret string `yaml:"secret"`
 	} `yaml:"jwt"`
+	ErrorLog struct {
+		File  string `yaml:"file"`
+		Level string `yaml:"level"`
+	} `yaml:"errorLog"`
 	Slack struct {
 		Token            string `yaml:"token"`
 		BroadcastChannel string `yaml:"broadcast_channel"`
