@@ -22,12 +22,7 @@ func main() {
 	}
 
 	loggerService := service.NewErrorLogger(config.ErrorLog.File, true, level)
-	logger, err := loggerService.GetDefaultLogger()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Logger-Init-Fehler: %v\n", err)
-		os.Exit(1)
-	}
-	defer loggerService.Close()
+	logger := loggerService.GetDefaultLogger()
 
 	dbconn.OpenDB(config.Database.Dsn)
 	dbconn.RunMigrate(dbconn.DBSystem)

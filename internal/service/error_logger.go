@@ -4,15 +4,15 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type ErrorLogger struct {
-	log       *logrus.Logger
-	file      *os.File
+	logger    *logrus.Logger
 	initOnce  sync.Once
-	initErr   error
 	toConsole bool
 	path      string
 	level     logrus.Level
@@ -20,38 +20,41 @@ type ErrorLogger struct {
 
 func NewErrorLogger(path string, toConsole bool, level logrus.Level) *ErrorLogger {
 	return &ErrorLogger{
-		log:       logrus.New(),
+		logger:    logrus.New(),
 		toConsole: toConsole,
 		path:      path,
 		level:     level,
 	}
 }
 
-func (el *ErrorLogger) GetDefaultLogger() (*logrus.Logger, error) {
+func (el *ErrorLogger) GetDefaultLogger() *logrus.Logger {
 	el.initOnce.Do(func() {
-		file, err := os.OpenFile(el.path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-		if err != nil {
-			el.initErr = err
-			el.log.SetOutput(os.Stdout)
-			return
+		lumberjackLogger := &lumberjack.Logger{
+			Filename:   el.dailyLogFileName(),
+			MaxSize:    10,
+			MaxAge:     10,
+			MaxBackups: 0,
+			Compress:   true,
 		}
-		el.file = file
 
+		var output io.Writer
 		if el.toConsole {
-			el.log.SetOutput(io.MultiWriter(os.Stdout, file))
+			output = io.MultiWriter(os.Stdout, lumberjackLogger)
 		} else {
-			el.log.SetOutput(file)
+			output = lumberjackLogger
 		}
 
-		el.log.SetLevel(el.level)
-		el.log.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
+		el.logger.SetOutput(output)
+		el.logger.SetLevel(el.level)
+		el.logger.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: time.RFC3339,
+			PrettyPrint:     false,
+		})
 	})
-	return el.log, el.initErr
+	return el.logger
 }
 
-func (el *ErrorLogger) Close() error {
-	if el.file != nil {
-		return el.file.Close()
-	}
-	return nil
+func (el *ErrorLogger) dailyLogFileName() string {
+	today := time.Now().Format("2006-01-02")
+	return el.path + "_" + today + ".log"
 }
