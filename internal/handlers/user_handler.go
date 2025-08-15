@@ -10,18 +10,20 @@ import (
 	"github.com/DevPulseLab/salat/internal/forms"
 	"github.com/DevPulseLab/salat/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type UserHandler struct {
 	UserRepo         *repositories.UserRepository
 	MessagingService *service.MessagingService
+	Logger           *logrus.Logger
 }
 
-func NewUserHandler(db *gorm.DB, config *config.Config) *UserHandler {
+func NewUserHandler(db *gorm.DB, config *config.Config, logger *logrus.Logger) *UserHandler {
 	userRepo := repositories.NewUserRepository(db)
 	ms := service.NewMessagingService(config.Slack.Token, db)
-	return &UserHandler{userRepo, ms}
+	return &UserHandler{userRepo, ms, logger}
 }
 
 func (handler *UserHandler) GetUserList(ctx *gin.Context) {
@@ -55,7 +57,12 @@ func (handler *UserHandler) SetPenaltyCard(ctx *gin.Context) {
 	}
 
 	if form.CardType != "" {
-		handler.MessagingService.SendPrivateMessage(form.UserId, "Du hast eine Strafkarte bekommen: "+form.CardType)
+		err := handler.MessagingService.SendPrivateMessage(
+			form.UserId,
+			"Du hast eine Strafkarte bekommen: "+handler.parsePenaltyCard(form.CardType))
+		if err != nil {
+			handler.Logger.Errorf("Could not send message to user %d: %s", form.UserId, err.Error())
+		}
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})
@@ -65,4 +72,18 @@ func (handler *UserHandler) GetCurrentUserInfo(ctx *gin.Context) {
 	user := ctx.MustGet("user").(*models.User)
 
 	ctx.JSON(http.StatusOK, gin.H{"penaltyCard": user.PenaltyCard})
+}
+
+func (handler *UserHandler) parsePenaltyCard(cardType string) string {
+	colorMap := map[string]string{
+		"yellow": ":large_yellow_square:",
+		"red":    ":large_red_square:",
+	}
+
+	parsedType, ok := colorMap[cardType]
+	if !ok {
+		parsedType = cardType
+	}
+
+	return parsedType
 }

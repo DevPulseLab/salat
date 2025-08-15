@@ -14,19 +14,19 @@ type CheckReservedRequests struct {
 	Config           *config.Config
 	MessagingService *service.MessagingService
 	CalendarRepo     *repositories.CalendarRepository
-	log              *logrus.Logger
+	Logger           *logrus.Logger
 }
 
-func NewCheckReservedRequests(config *config.Config, db *gorm.DB, log *logrus.Logger) *CheckReservedRequests {
+func NewCheckReservedRequests(config *config.Config, db *gorm.DB, logger *logrus.Logger) *CheckReservedRequests {
 	ms := service.NewMessagingService(config.Slack.Token, db)
 	calendarRepo := repositories.NewCalendarRepository(db, helper.NewDateHelper())
-	return &CheckReservedRequests{config, ms, calendarRepo, log}
+	return &CheckReservedRequests{config, ms, calendarRepo, logger}
 }
 
 func (task *CheckReservedRequests) Execute() {
 	now := carbon.Now()
 	countReservedRequests := task.CalendarRepo.CountReservedForDate(now)
-	task.log.Debugf("Count reserved requests: %d", countReservedRequests)
+	task.Logger.Debugf("Count reserved requests: %d", countReservedRequests)
 
 	if countReservedRequests > 0 {
 		err := task.MessagingService.SendPrivateMessageToEmail(
@@ -34,7 +34,7 @@ func (task *CheckReservedRequests) Execute() {
 			"Es gibt noch ungenehmigte Einträge")
 
 		if err != nil {
-			task.log.Errorf("Error while sending message: %s", err.Error())
+			task.Logger.Errorf("Error while sending message: %s", err.Error())
 		}
 	}
 }

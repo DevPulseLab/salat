@@ -8,17 +8,18 @@ import (
 	"github.com/DevPulseLab/salat/internal/handlers"
 	"github.com/DevPulseLab/salat/internal/middlewares"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config) {
+func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config, logger *logrus.Logger) {
 	jwtMiddleware := middlewares.NewJwtMiddleware(config)
 	roleMiddleware := middlewares.NewRoleMiddleware()
 	currentUserMiddleware := middlewares.NewCurrentUserMiddleware(db)
 	authHandler := handlers.NewAuthHandler(db, config)
-	userHandler := handlers.NewUserHandler(db, config)
+	userHandler := handlers.NewUserHandler(db, config, logger)
 	userCalendarHandler := handlers.NewUserCalendarHandler(db)
-	adminCalendarHandler := handlers.NewAdminCalendarHandler(db, config)
+	adminCalendarHandler := handlers.NewAdminCalendarHandler(db, config, logger)
 	realDayStatsHandler := handlers.NewRealDayStatsHandler(db)
 
 	router.Use(middlewares.CORSMiddleware())

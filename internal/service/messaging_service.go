@@ -23,7 +23,7 @@ func NewMessagingService(slackToken string, db *gorm.DB) *MessagingService {
 
 func (ms *MessagingService) SendPrivateMessage(userId uint, content string) error {
 	userModel, err := ms.UserRepo.FindById(userId)
-	if err == nil {
+	if err != nil {
 		return fmt.Errorf("user with id %d not found: %w", userId, err)
 	}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/DevPulseLab/salat/internal/helper"
 	"github.com/DevPulseLab/salat/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -22,9 +23,10 @@ type AdminCalendarHandler struct {
 	CalendarDtoBuilder   *builder.CalendarDtoBuilder
 	VisitStatsDtoBuilder *builder.VisitStatsDtoBuilder
 	MessagingService     *service.MessagingService
+	Logger               *logrus.Logger
 }
 
-func NewAdminCalendarHandler(db *gorm.DB, config *config.Config) *AdminCalendarHandler {
+func NewAdminCalendarHandler(db *gorm.DB, config *config.Config, log *logrus.Logger) *AdminCalendarHandler {
 	dateHelper := helper.NewDateHelper()
 	closeIntervalRepo := repositories.NewCloseIntervalsRepository(db)
 	calendarRepo := repositories.NewCalendarRepository(db, dateHelper)
@@ -40,7 +42,8 @@ func NewAdminCalendarHandler(db *gorm.DB, config *config.Config) *AdminCalendarH
 		requestHelper,
 		calendarDtoBuilder,
 		visitStatsDtoBuilder,
-		ms}
+		ms,
+		log}
 }
 
 func (handler *AdminCalendarHandler) AllUserList(ctx *gin.Context) {
@@ -77,7 +80,10 @@ func (handler *AdminCalendarHandler) ChangeEntryStatus(ctx *gin.Context) {
 	}
 
 	if enum.CalendarStatus(calendarModel.Status) == enum.Approved {
-		handler.MessagingService.SendPrivateMessage(calendarModel.UserId, "Deine Anfrage wurde genehmigt, du darfst zur Salatbar kommen")
+		err := handler.MessagingService.SendPrivateMessage(calendarModel.UserId, "Deine Anfrage wurde genehmigt, du darfst zur Salatbar kommen")
+		if err != nil {
+			handler.Logger.Errorf("Errror while sending message to user: %s", err.Error())
+		}
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})

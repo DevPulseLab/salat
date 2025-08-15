@@ -22,7 +22,7 @@ func main() {
 	}
 
 	loggerService := service.NewErrorLogger(config.ErrorLog.File, true, level)
-	log, err := loggerService.GetDefaultLogger()
+	logger, err := loggerService.GetDefaultLogger()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Logger-Init-Fehler: %v\n", err)
 		os.Exit(1)
@@ -32,9 +32,9 @@ func main() {
 	dbconn.OpenDB(config.Database.Dsn)
 	dbconn.RunMigrate(dbconn.DBSystem)
 
-	cron.Start(config, dbconn.DBSystem, log)
+	cron.Start(config, dbconn.DBSystem, logger)
 
-	if err := http.Run(config); err != nil {
-		log.Fatalf("HTTP-Server-Fehler: %v", err)
+	if err := http.Run(config, logger); err != nil {
+		logger.Fatalf("HTTP-Server-Fehler: %v", err)
 	}
 }
