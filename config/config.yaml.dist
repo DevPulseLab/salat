@@ -4,9 +4,9 @@ database:
 jwt:
   secret: jwt_secret
 
-error:
+errorLog:
   file: log/errors.log
-  logLevel: error
+  level: error
 
 slack:
   token:
