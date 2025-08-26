@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/DevPulseLab/salat/internal/builder"
@@ -80,7 +81,11 @@ func (handler *AdminCalendarHandler) ChangeEntryStatus(ctx *gin.Context) {
 	}
 
 	if enum.CalendarStatus(calendarModel.Status) == enum.Approved {
-		err := handler.MessagingService.SendPrivateMessage(calendarModel.UserId, "Deine Anfrage wurde genehmigt, du darfst zur Salatbar kommen")
+		err := handler.MessagingService.SendPrivateMessage(
+			calendarModel.UserId,
+			fmt.Sprintf(
+				"Deine Anfrage wurde genehmigt, du darfst zur Salatbar am %s kommen",
+				calendarModel.Date.Format("02.01.2006")))
 		if err != nil {
 			handler.Logger.Errorf("Errror while sending message to user: %s", err.Error())
 		}
