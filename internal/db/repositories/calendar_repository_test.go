@@ -6,23 +6,13 @@ import (
 	"time"
 
 	"github.com/DevPulseLab/salat/internal/db/models"
+	"github.com/DevPulseLab/salat/internal/db/repositories/testutils"
 	"github.com/DevPulseLab/salat/internal/enum"
 	"github.com/uniplaces/carbon"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
-func getTestDb(t *testing.T) *gorm.DB {
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("failed to connect database: %v", err)
-	}
-	db.AutoMigrate(&models.Calendar{})
-	return db
-}
-
 func TestFindByIdForUserIdSuccess(t *testing.T) {
-	db := getTestDb(t)
+	db := testutils.GetTestDb(t, &models.Calendar{})
 
 	repo := NewCalendarRepository(db)
 
@@ -69,7 +59,7 @@ func TestFindByIdForUserIdSuccess(t *testing.T) {
 }
 
 func TestFindByIdForUserIdFailed(t *testing.T) {
-	db := getTestDb(t)
+	db := testutils.GetTestDb(t, &models.Calendar{})
 
 	repo := NewCalendarRepository(db)
 
@@ -86,7 +76,7 @@ func TestFindByIdForUserIdFailed(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	db := getTestDb(t)
+	db := testutils.GetTestDb(t, &models.Calendar{})
 
 	repo := NewCalendarRepository(db)
 
@@ -110,7 +100,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestGetCalendarEntriesByUserId(t *testing.T) {
-	db := getTestDb(t)
+	db := testutils.GetTestDb(t, &models.Calendar{})
 
 	repo := NewCalendarRepository(db)
 
@@ -165,7 +155,7 @@ func TestGetCalendarEntriesByUserId(t *testing.T) {
 }
 
 func TestFindByDateRange(t *testing.T) {
-	db := getTestDb(t)
+	db := testutils.GetTestDb(t, &models.Calendar{})
 
 	repo := NewCalendarRepository(db)
 
@@ -192,7 +182,7 @@ func TestFindByDateRange(t *testing.T) {
 }
 
 func TestUpdateStatus(t *testing.T) {
-	db := getTestDb(t)
+	db := testutils.GetTestDb(t, &models.Calendar{})
 
 	repo := NewCalendarRepository(db)
 
@@ -216,7 +206,7 @@ func TestUpdateStatus(t *testing.T) {
 }
 
 func TestCountReservedByDate(t *testing.T) {
-	db := getTestDb(t)
+	db := testutils.GetTestDb(t, &models.Calendar{})
 
 	repo := NewCalendarRepository(db)
 
@@ -238,7 +228,7 @@ func TestCountReservedByDate(t *testing.T) {
 }
 
 func TestSoftDeleteAndRestore(t *testing.T) {
-	db := getTestDb(t)
+	db := testutils.GetTestDb(t, &models.Calendar{})
 
 	repo := NewCalendarRepository(db)
 
