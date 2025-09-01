@@ -95,7 +95,7 @@ func (repo *CalendarRepository) AddCalendarEntry(user *models.User, startDate, e
 		}
 
 		var deletedCalendarEntry models.Calendar
-		if err := repo.DB.Unscoped().Where("user_id = ? AND date = ? AND deleted_at IS NOT NULL", user.ID, currDate).First(&deletedCalendarEntry).Error; err == nil {
+		if err := repo.DB.Unscoped().Where("user_id = ? AND DATE(date) = DATE(?) AND deleted_at IS NOT NULL", user.ID, currDate).First(&deletedCalendarEntry).Error; err == nil {
 			repo.DB.Unscoped().Model(&deletedCalendarEntry).Update("deleted_at", nil)
 			deletedCalendarEntry.Status = string(status)
 			saveErr := repo.DB.Save(deletedCalendarEntry).Error
@@ -128,7 +128,7 @@ func (repo *CalendarRepository) AddCalendarEntry(user *models.User, startDate, e
 func (repo *CalendarRepository) GetCalendarEntriesByUserId(userId uint, startDate, endDate time.Time) []models.Calendar {
 	var calendars []models.Calendar
 
-	repo.DB.Where("user_id = ? AND date >= ? AND date <= ?", userId, startDate, endDate).Find(&calendars)
+	repo.DB.Where("user_id = ? AND DATE(date) >= DATE(?) AND DATE(date) <= DATE(?)", userId, startDate, endDate).Find(&calendars)
 
 	return calendars
 }
@@ -136,7 +136,7 @@ func (repo *CalendarRepository) GetCalendarEntriesByUserId(userId uint, startDat
 func (repo *CalendarRepository) GetCalendarEntriesForAllUsers(startDate, endDate time.Time) []models.Calendar {
 	var calendars []models.Calendar
 
-	repo.DB.Where("date >= ? AND date <= ?", startDate, endDate).Find(&calendars)
+	repo.DB.Where("DATE(date) >= DATE(?) AND DATE(date) <= DATE(?)", startDate, endDate).Find(&calendars)
 
 	return calendars
 }
