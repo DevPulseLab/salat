@@ -17,7 +17,7 @@ func NewVisitStatsRepository(db *gorm.DB) *VisitStatsRepository {
 
 func (repo *VisitStatsRepository) ToggleVisit(userId uint, visitDate time.Time) (*models.VisitStats, error) {
 	var statsEntry models.VisitStats
-	if err := repo.DB.Where("user_id = ? AND DATE(date) = DATE(?)", userId, visitDate).First(&statsEntry).Error; err == nil {
+	if err := repo.DB.Where("user_id = ? AND DATE(date) = ?", userId, visitDate.Format("2006-01-02")).First(&statsEntry).Error; err == nil {
 		statsEntry.IsVisit = !statsEntry.IsVisit
 	} else {
 		statsEntry = models.VisitStats{UserId: userId, Date: visitDate, IsVisit: true}
@@ -30,7 +30,7 @@ func (repo *VisitStatsRepository) ToggleVisit(userId uint, visitDate time.Time) 
 func (repo *VisitStatsRepository) GetVisitVisit(startDate, endDate time.Time) []models.VisitStats {
 	var visitStatsList []models.VisitStats
 
-	repo.DB.Where("DATE(date) >= (?) AND DATE(date) <= DATE(?)", startDate, endDate).Find(&visitStatsList)
+	repo.DB.Where("DATE(date) >= ? AND DATE(date) <= ?", startDate.Format("2006-01-02"), endDate.Format("2006-01-02")).Find(&visitStatsList)
 
 	return visitStatsList
 }
