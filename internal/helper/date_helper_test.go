@@ -210,6 +210,6 @@ func TestIsDateInCloseIntervals(t *testing.T) {
 }
 
 func parseDate(dateString string) time.Time {
-	res, _ := time.ParseInLocation("2006-01-02", dateString, time.Local)
+	res, _ := time.Parse("2006-01-02", dateString)
 	return res
 }

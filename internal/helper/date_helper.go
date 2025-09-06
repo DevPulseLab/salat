@@ -21,7 +21,7 @@ func (helper *DateHelper) IsDateInCurrentWeek(t time.Time) bool {
 
 func (helper *DateHelper) IsDateNextWeekAndNowAfterFriday(t time.Time) bool {
 	fridayThisWeek := helper.getFridayOfWeek(carbon.Now().Time)
-	fridayThisWeekLunch := time.Date(fridayThisWeek.Year(), fridayThisWeek.Month(), fridayThisWeek.Day(), 12, 0, 0, 0, time.Local)
+	fridayThisWeekLunch := time.Date(fridayThisWeek.Year(), fridayThisWeek.Month(), fridayThisWeek.Day(), 12, 0, 0, 0, fridayThisWeek.Location())
 
 	year, week := carbon.Now().AddDate(0, 0, 7).ISOWeek()
 	targetYear, targetWeek := t.ISOWeek()
@@ -51,5 +51,5 @@ func (helper *DateHelper) IsDateInCloseIntervals(inputDate time.Time, closeInter
 }
 
 func ParseDate(dateString string) (time.Time, error) {
-	return time.ParseInLocation("2006-01-02", dateString, time.Local)
+	return time.Parse("2006-01-02", dateString)
 }

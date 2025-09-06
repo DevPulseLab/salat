@@ -113,7 +113,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestAddCalendarEntry(t *testing.T) {
-	carbon.Freeze(time.Date(2025, time.May, 1, 0, 0, 0, 0, time.Local))
+	carbon.Freeze(time.Date(2025, time.May, 1, 0, 0, 0, 0, time.UTC))
 	defer carbon.UnFreeze()
 
 	db := getTestDb(t)
@@ -339,11 +339,11 @@ func TestGetCalendarEntriesForAllUsers(t *testing.T) {
 }
 
 func parseDate(dateString string) time.Time {
-	res, _ := time.ParseInLocation("2006-01-02", dateString, time.Local)
+	res, _ := time.Parse("2006-01-02", dateString)
 	return res
 }
 
 func parseDateTime(dateString string) time.Time {
-	res, _ := time.ParseInLocation("2006-01-02 15:04:05", dateString, time.Local)
+	res, _ := time.Parse("2006-01-02 15:04:05", dateString)
 	return res
 }

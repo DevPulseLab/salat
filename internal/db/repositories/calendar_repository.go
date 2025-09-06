@@ -63,7 +63,7 @@ func (repo *CalendarRepository) CountReservedForDate(date *carbon.Carbon) int64 
 }
 
 func (repo *CalendarRepository) AddCalendarEntry(user *models.User, startDate, endDate time.Time, closeIntervals []dto.CloseInterval) ([]models.Calendar, []error) {
-	currDate := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.Local)
+	currDate := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())
 	now := carbon.Now().Time
 	nowPlus30Days := carbon.Now().AddDate(0, 0, 30)
 
