@@ -234,12 +234,13 @@ onMounted(async () => {
     </thead>
     <tbody>
     <tr class="border-b" v-for="user in filteredUsers" :key="user.id">
-      <td class="px-2 py-1 w-[200px] border-l">{{ usersService.getNameFromEmail(user) }}
+      <td class="px-2 py-1 w-[200px] border-l">
         <CardSelector
             :initialColor="user.penaltyCard"
             :userId="user.id"
             @card-updated="(color) => user.penaltyCard = color"
         />
+        {{ usersService.getNameFromEmail(user) }}
       </td>
       <td
           class="px-2 py-1 w-[200px] border-l border-r text-center"
