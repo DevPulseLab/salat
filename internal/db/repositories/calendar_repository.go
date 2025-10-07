@@ -2,27 +2,23 @@ package repositories
 
 import (
 	"errors"
-	"log"
 	"time"
 
 	"github.com/DevPulseLab/salat/internal/db/models"
-	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/enum"
-	"github.com/DevPulseLab/salat/internal/helper"
 	"github.com/uniplaces/carbon"
 	"gorm.io/gorm"
 )
 
 type CalendarRepository struct {
-	DB         *gorm.DB
-	dateHelper *helper.DateHelper
+	DB *gorm.DB
 }
 
-func NewCalendarRepository(db *gorm.DB, dh *helper.DateHelper) *CalendarRepository {
-	return &CalendarRepository{DB: db, dateHelper: dh}
+func NewCalendarRepository(db *gorm.DB) *CalendarRepository {
+	return &CalendarRepository{DB: db}
 }
 
-func (repo *CalendarRepository) GetByIdForUserId(id, userId uint) (models.Calendar, error) {
+func (repo *CalendarRepository) FindByIdForUserId(id, userId uint) (models.Calendar, error) {
 	var calendarEntry models.Calendar
 	result := repo.DB.Where("id = ? AND user_id = ? AND deleted_at IS NULL", id, userId).First(&calendarEntry)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -32,11 +28,11 @@ func (repo *CalendarRepository) GetByIdForUserId(id, userId uint) (models.Calend
 	return calendarEntry, nil
 }
 
-func (repo *CalendarRepository) Remove(model *models.Calendar) {
+func (repo *CalendarRepository) SoftDelete(model *models.Calendar) {
 	repo.DB.Delete(&model)
 }
 
-func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) (models.Calendar, error) {
+func (repo *CalendarRepository) UpdateStatus(modelId uint, status string) (models.Calendar, error) {
 	var calendarEntry models.Calendar
 	result := repo.DB.Where("id = ? AND deleted_at IS NULL", modelId).First(&calendarEntry)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -49,94 +45,39 @@ func (repo *CalendarRepository) ChangeEntryStatus(modelId uint, status string) (
 	return calendarEntry, result.Error
 }
 
-func (repo *CalendarRepository) CountReservedForDate(date *carbon.Carbon) int64 {
+func (repo *CalendarRepository) CountReservedByDate(date *carbon.Carbon) (int64, error) {
 	var count int64
 	result := repo.DB.Model(&models.Calendar{}).
 		Where("status = ? AND DATE(date) = ? AND deleted_at IS NULL", string(enum.Reserved), date.Time.Format("2006-01-02")).
 		Count(&count)
-	if result.Error != nil {
-		log.Printf("Error: %v", result.Error)
-		return 0
-	}
-
-	return count
+	return count, result.Error
 }
 
-func (repo *CalendarRepository) AddCalendarEntry(user *models.User, startDate, endDate time.Time, closeIntervals []dto.CloseInterval) ([]models.Calendar, []error) {
-	currDate := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())
-	now := carbon.Now().Time
-	nowPlus30Days := carbon.Now().AddDate(0, 0, 30)
-
-	errors := []error{}
-	addedDays := []models.Calendar{}
-
-	for endDate.Sub(currDate).Hours() >= 0 {
-		if repo.dateHelper.IsWeekend(currDate) {
-			currDate = currDate.AddDate(0, 0, 1)
-			continue
-		}
-
-		if repo.dateHelper.IsDateInCloseIntervals(currDate, closeIntervals) {
-			currDate = currDate.AddDate(0, 0, 1)
-			continue
-		}
-
-		status := enum.Approved
-		if user.PenaltyCard == string(enum.Yellow) {
-			status = enum.Reserved
-		} else if user.PenaltyCard == string(enum.Red) {
-			status = enum.Rejected
-		} else if currDate.Equal(now) || currDate.Before(now) || currDate.After(nowPlus30Days) {
-			status = enum.Rejected
-		} else if repo.dateHelper.IsDateInCurrentWeek(currDate) {
-			status = enum.Reserved
-		} else if repo.dateHelper.IsDateNextWeekAndNowAfterFriday(currDate) {
-			status = enum.Reserved
-		}
-
-		var deletedCalendarEntry models.Calendar
-		if err := repo.DB.Unscoped().Where("user_id = ? AND DATE(date) = ? AND deleted_at IS NOT NULL", user.ID, currDate.Format("2006-01-02")).First(&deletedCalendarEntry).Error; err == nil {
-			repo.DB.Unscoped().Model(&deletedCalendarEntry).Update("deleted_at", nil)
-			deletedCalendarEntry.Status = string(status)
-			saveErr := repo.DB.Save(deletedCalendarEntry).Error
-			if saveErr != nil {
-				errors = append(errors, saveErr)
-			} else {
-				addedDays = append(addedDays, deletedCalendarEntry)
-			}
-			continue
-		}
-
-		calendarModel := models.Calendar{UserId: user.ID, Date: currDate, Status: string(status)}
-		insertErr := repo.DB.Create(&calendarModel).Error
-		if insertErr != nil {
-			errors = append(errors, insertErr)
-		} else {
-			addedDays = append(addedDays, calendarModel)
-		}
-
-		currDate = currDate.AddDate(0, 0, 1)
-	}
-
-	if len(errors) > 0 {
-		return addedDays, errors
-	}
-
-	return addedDays, nil
+func (repo *CalendarRepository) FindDeletedByUserIdAndDate(userID uint, date time.Time) (models.Calendar, error) {
+	var calendarEntry models.Calendar
+	result := repo.DB.Unscoped().Where("user_id = ? AND date = ? AND deleted_at IS NOT NULL", userID, date).First(&calendarEntry)
+	return calendarEntry, result.Error
 }
 
-func (repo *CalendarRepository) GetCalendarEntriesByUserId(userId uint, startDate, endDate time.Time) []models.Calendar {
+func (repo *CalendarRepository) RestoreAndUpdate(calendarEntry *models.Calendar, status string) error {
+	return repo.DB.Unscoped().Model(&calendarEntry).Updates(map[string]interface{}{
+		"deleted_at": nil,
+		"status":     status,
+	}).Error
+}
+
+func (repo *CalendarRepository) Create(calendarEntry *models.Calendar) error {
+	return repo.DB.Create(calendarEntry).Error
+}
+
+func (repo *CalendarRepository) FindByUserIdAndDateRange(userID uint, startDate, endDate time.Time) ([]models.Calendar, error) {
 	var calendars []models.Calendar
-
-	repo.DB.Where("user_id = ? AND DATE(date) >= ? AND DATE(date) <= ?", userId, startDate.Format("2006-01-02"), endDate.Format("2006-01-02")).Find(&calendars)
-
-	return calendars
+	result := repo.DB.Where("user_id = ? AND DATE(date) >= ? AND DATE(date) <= ?", userID, startDate.Format("2006-01-02"), endDate.Format("2006-01-02")).Find(&calendars)
+	return calendars, result.Error
 }
 
-func (repo *CalendarRepository) GetCalendarEntriesForAllUsers(startDate, endDate time.Time) []models.Calendar {
+func (repo *CalendarRepository) FindByDateRange(startDate, endDate time.Time) ([]models.Calendar, error) {
 	var calendars []models.Calendar
-
-	repo.DB.Where("DATE(date) >= ? AND DATE(date) <= ?", startDate.Format("2006-01-02"), endDate.Format("2006-01-02")).Find(&calendars)
-
-	return calendars
+	result := repo.DB.Where("DATE(date) >= ? AND DATE(date) <= ?", startDate.Format("2006-01-02"), endDate.Format("2006-01-02")).Find(&calendars)
+	return calendars, result.Error
 }

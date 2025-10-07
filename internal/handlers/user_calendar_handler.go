@@ -9,12 +9,14 @@ import (
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/forms"
 	"github.com/DevPulseLab/salat/internal/helper"
+	"github.com/DevPulseLab/salat/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type UserCalendarHandler struct {
 	CalendarRepo            *repositories.CalendarRepository
+	CalendarService         *services.CalendarService
 	UserRepo                *repositories.UserRepository
 	CloseIntervalRepo       *repositories.CloseIntervalRepository
 	DateHelper              *helper.DateHelper
@@ -25,13 +27,14 @@ type UserCalendarHandler struct {
 
 func NewUserCalendarHandler(db *gorm.DB) *UserCalendarHandler {
 	dateHelper := helper.NewDateHelper()
-	calendarRepo := repositories.NewCalendarRepository(db, dateHelper)
+	calendarRepo := repositories.NewCalendarRepository(db)
+	calendarService := services.NewCalendarService(calendarRepo, dateHelper)
 	userRepo := repositories.NewUserRepository(db)
 	closeIntervalsRepo := repositories.NewCloseIntervalsRepository(db)
 	requestHelper := helper.NewRequestHelper()
 	calendarDtoBuilder := builder.NewCalendarDtoBuilder()
 	closeIntervalDtoBuilder := builder.NewCloseIntervalDtoBuilder()
-	return &UserCalendarHandler{calendarRepo, userRepo, closeIntervalsRepo, dateHelper, requestHelper, calendarDtoBuilder, closeIntervalDtoBuilder}
+	return &UserCalendarHandler{calendarRepo, calendarService, userRepo, closeIntervalsRepo, dateHelper, requestHelper, calendarDtoBuilder, closeIntervalDtoBuilder}
 }
 
 func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
@@ -45,7 +48,7 @@ func (handler *UserCalendarHandler) Add(ctx *gin.Context) {
 
 	closeIntervalModels := handler.CloseIntervalRepo.GetAllEntriesForInterval(form.StartDate, form.EndDate)
 
-	addedCalendarModels, errors := handler.CalendarRepo.AddCalendarEntry(
+	addedCalendarModels, errors := handler.CalendarService.AddCalendarEntries(
 		user,
 		form.StartDate,
 		form.EndDate,
@@ -86,7 +89,11 @@ func (handler *UserCalendarHandler) CurrentUserList(ctx *gin.Context) {
 		return
 	}
 
-	calendars := handler.CalendarRepo.GetCalendarEntriesByUserId(userId, startDate, endDate)
+	calendars, err := handler.CalendarRepo.FindByUserIdAndDateRange(userId, startDate, endDate)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "An error occurred while find data for user"})
+		return
+	}
 
 	calendarDtos := handler.CalendarDtoBuilder.BuildFromCalendarModels(calendars)
 
@@ -106,7 +113,7 @@ func (handler *UserCalendarHandler) RemoveEntryForCurrentUser(ctx *gin.Context) 
 		return
 	}
 
-	calendarEntry, err := handler.CalendarRepo.GetByIdForUserId(form.CalendarEntryId, userId)
+	calendarEntry, err := handler.CalendarRepo.FindByIdForUserId(form.CalendarEntryId, userId)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Calendar entry not found"})
 		return
@@ -120,7 +127,7 @@ func (handler *UserCalendarHandler) RemoveEntryForCurrentUser(ctx *gin.Context) 
 		return
 	}
 
-	handler.CalendarRepo.Remove(&calendarEntry)
+	handler.CalendarRepo.SoftDelete(&calendarEntry)
 
 	ctx.JSON(http.StatusOK, gin.H{"success": true})
 }

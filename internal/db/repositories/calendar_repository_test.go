@@ -6,10 +6,7 @@ import (
 	"time"
 
 	"github.com/DevPulseLab/salat/internal/db/models"
-	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/enum"
-	"github.com/DevPulseLab/salat/internal/helper"
-	"github.com/google/go-cmp/cmp"
 	"github.com/uniplaces/carbon"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -24,10 +21,10 @@ func getTestDb(t *testing.T) *gorm.DB {
 	return db
 }
 
-func TestGetByIdForUserIdSuccess(t *testing.T) {
+func TestFindByIdForUserIdSuccess(t *testing.T) {
 	db := getTestDb(t)
 
-	repo := NewCalendarRepository(db, helper.NewDateHelper())
+	repo := NewCalendarRepository(db)
 
 	db.Create(&models.Calendar{
 		UserId: 10,
@@ -59,7 +56,7 @@ func TestGetByIdForUserIdSuccess(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("test userId: %v", test.userId), func(t *testing.T) {
-			result, err := repo.GetByIdForUserId(test.id, test.userId)
+			result, err := repo.FindByIdForUserId(test.id, test.userId)
 			if err != nil {
 				t.Errorf("Expected model, return error: %v", err)
 			}
@@ -71,13 +68,13 @@ func TestGetByIdForUserIdSuccess(t *testing.T) {
 	}
 }
 
-func TestGetByIdForUserIdFailed(t *testing.T) {
+func TestFindByIdForUserIdFailed(t *testing.T) {
 	db := getTestDb(t)
 
-	repo := NewCalendarRepository(db, helper.NewDateHelper())
+	repo := NewCalendarRepository(db)
 
 	t.Run("test record not found", func(t *testing.T) {
-		_, err := repo.GetByIdForUserId(1, 10)
+		_, err := repo.FindByIdForUserId(1, 10)
 		if err == nil {
 			t.Errorf("Expected error")
 		}
@@ -91,7 +88,7 @@ func TestGetByIdForUserIdFailed(t *testing.T) {
 func TestRemove(t *testing.T) {
 	db := getTestDb(t)
 
-	repo := NewCalendarRepository(db, helper.NewDateHelper())
+	repo := NewCalendarRepository(db)
 
 	db.Create(&models.Calendar{
 		UserId: 10,
@@ -99,171 +96,23 @@ func TestRemove(t *testing.T) {
 		Status: string(enum.Approved),
 	})
 
-	result, err := repo.GetByIdForUserId(1, 10)
+	result, err := repo.FindByIdForUserId(1, 10)
 	if err != nil {
 		t.Errorf("Expected model, return error: %v", err)
 	}
 
-	repo.Remove(&result)
+	repo.SoftDelete(&result)
 
-	_, err = repo.GetByIdForUserId(1, 10)
+	_, err = repo.FindByIdForUserId(1, 10)
 	if err == nil {
 		t.Errorf("Expected not found")
-	}
-}
-
-func TestAddCalendarEntry(t *testing.T) {
-	carbon.Freeze(time.Date(2025, time.May, 1, 0, 0, 0, 0, time.UTC))
-	defer carbon.UnFreeze()
-
-	db := getTestDb(t)
-
-	repo := NewCalendarRepository(db, helper.NewDateHelper())
-
-	tests := []struct {
-		user           models.User
-		startDate      time.Time
-		endDate        time.Time
-		closeIntervals []dto.CloseInterval
-		expected       []models.Calendar
-	}{
-		{
-			user:           models.User{Model: gorm.Model{ID: 1}},
-			startDate:      parseDate("2025-05-01"),
-			endDate:        parseDate("2025-05-01"),
-			closeIntervals: []dto.CloseInterval{},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-05-01"), Status: string(enum.Rejected)},
-			},
-		},
-		{
-			user:           models.User{Model: gorm.Model{ID: 1}},
-			startDate:      parseDate("2025-05-02"),
-			endDate:        parseDate("2025-05-03"),
-			closeIntervals: []dto.CloseInterval{},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-05-02"), Status: string(enum.Reserved)},
-			},
-		},
-		{
-			user:           models.User{Model: gorm.Model{ID: 1}},
-			startDate:      parseDate("2025-05-05"),
-			endDate:        parseDate("2025-05-08"),
-			closeIntervals: []dto.CloseInterval{},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-05-05"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-06"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-07"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-08"), Status: string(enum.Approved)},
-			},
-		},
-		{
-			user:           models.User{Model: gorm.Model{ID: 1}},
-			startDate:      parseDate("2025-05-12"),
-			endDate:        parseDateTime("2025-05-15 10:00:00"),
-			closeIntervals: []dto.CloseInterval{},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-05-12"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-13"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-14"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-15"), Status: string(enum.Approved)},
-			},
-		},
-		{
-			user:           models.User{Model: gorm.Model{ID: 1}},
-			startDate:      parseDateTime("2025-05-19 00:00:00"),
-			endDate:        parseDateTime("2025-05-21 00:00:00"),
-			closeIntervals: []dto.CloseInterval{},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-05-19"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-20"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-21"), Status: string(enum.Approved)},
-			},
-		},
-		{
-			user:           models.User{Model: gorm.Model{ID: 1}},
-			startDate:      parseDateTime("2025-05-27 12:00:00"),
-			endDate:        parseDateTime("2025-05-30 10:00:00"),
-			closeIntervals: []dto.CloseInterval{},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-05-27"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-28"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-29"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-30"), Status: string(enum.Approved)},
-			},
-		},
-		{
-			user:           models.User{Model: gorm.Model{ID: 1}},
-			startDate:      parseDateTime("2025-05-22 00:00:00"),
-			endDate:        parseDateTime("2025-05-26 00:00:00"),
-			closeIntervals: []dto.CloseInterval{},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-05-22"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-23"), Status: string(enum.Approved)},
-				{Date: parseDate("2025-05-26"), Status: string(enum.Approved)},
-			},
-		},
-		{
-			user:      models.User{Model: gorm.Model{ID: 1}},
-			startDate: parseDateTime("2025-06-02 00:00:00"),
-			endDate:   parseDateTime("2025-06-05 00:00:00"),
-			closeIntervals: []dto.CloseInterval{
-				{Id: 1, StartDate: parseDate("2025-06-03"), EndDate: parseDate("2025-06-04")},
-			},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-06-02"), Status: string(enum.Rejected)},
-				{Date: parseDate("2025-06-05"), Status: string(enum.Rejected)},
-			},
-		},
-		{
-			user:           models.User{Model: gorm.Model{ID: 2}, PenaltyCard: string(enum.Yellow)},
-			startDate:      parseDateTime("2025-05-22 00:00:00"),
-			endDate:        parseDateTime("2025-05-23 00:00:00"),
-			closeIntervals: []dto.CloseInterval{},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-05-22"), Status: string(enum.Reserved)},
-				{Date: parseDate("2025-05-23"), Status: string(enum.Reserved)},
-			},
-		},
-		{
-			user:           models.User{Model: gorm.Model{ID: 2}, PenaltyCard: string(enum.Red)},
-			startDate:      parseDateTime("2025-05-26 00:00:00"),
-			endDate:        parseDateTime("2025-05-27 00:00:00"),
-			closeIntervals: []dto.CloseInterval{},
-			expected: []models.Calendar{
-				{Date: parseDate("2025-05-26"), Status: string(enum.Rejected)},
-				{Date: parseDate("2025-05-27"), Status: string(enum.Rejected)},
-			},
-		},
-	}
-
-	for testNum, test := range tests {
-		t.Run(fmt.Sprintf("test userId: %v startDate: %v endDate: %v", test.user.ID, test.startDate, test.endDate), func(t *testing.T) {
-			result, errors := repo.AddCalendarEntry(&test.user, test.startDate, test.endDate, test.closeIntervals)
-			if len(errors) != 0 {
-				t.Errorf("Return errors: %v", errors)
-			}
-
-			if len(result) != len(test.expected) {
-				t.Errorf("The result and the expected length are not equal %v != %v", len(test.expected), len(result))
-			}
-
-			prepared := []models.Calendar{}
-			for _, item := range result {
-				prepared = append(prepared, models.Calendar{Date: item.Date, Status: item.Status})
-			}
-
-			if !cmp.Equal(prepared, test.expected) {
-				t.Errorf("Wrong result %v, actual: %v", testNum, prepared)
-			}
-		})
 	}
 }
 
 func TestGetCalendarEntriesByUserId(t *testing.T) {
 	db := getTestDb(t)
 
-	repo := NewCalendarRepository(db, helper.NewDateHelper())
+	repo := NewCalendarRepository(db)
 
 	db.Create(&models.Calendar{
 		UserId: 10,
@@ -304,17 +153,21 @@ func TestGetCalendarEntriesByUserId(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := repo.GetCalendarEntriesByUserId(test.UserId, test.StartDate, test.EndDate)
+		result, err := repo.FindByUserIdAndDateRange(test.UserId, test.StartDate, test.EndDate)
+		if err != nil {
+			t.Errorf("Result has an error %s", err.Error())
+		}
+
 		if len(result) != test.Expected {
 			t.Errorf("Result len must be %v", test.Expected)
 		}
 	}
 }
 
-func TestGetCalendarEntriesForAllUsers(t *testing.T) {
+func TestFindByDateRange(t *testing.T) {
 	db := getTestDb(t)
 
-	repo := NewCalendarRepository(db, helper.NewDateHelper())
+	repo := NewCalendarRepository(db)
 
 	db.Create(&models.Calendar{
 		UserId: 10,
@@ -332,18 +185,91 @@ func TestGetCalendarEntriesForAllUsers(t *testing.T) {
 		Status: string(enum.Rejected),
 	})
 
-	result := repo.GetCalendarEntriesForAllUsers(parseDate("2025-05-10"), parseDate("2025-05-14"))
+	result, _ := repo.FindByDateRange(parseDate("2025-05-10"), parseDate("2025-05-14"))
 	if len(result) != 3 {
 		t.Errorf("Result len must be 3")
 	}
 }
 
-func parseDate(dateString string) time.Time {
-	res, _ := time.Parse("2006-01-02", dateString)
-	return res
+func TestUpdateStatus(t *testing.T) {
+	db := getTestDb(t)
+
+	repo := NewCalendarRepository(db)
+
+	model := models.Calendar{
+		UserId: 20,
+		Date:   parseDate("2025-05-13"),
+		Status: string(enum.Rejected),
+	}
+	repo.Create(&model)
+
+	if model.Status != string(enum.Rejected) {
+		t.Errorf("Result status must be 'approved'")
+	}
+
+	repo.UpdateStatus(model.ID, string(enum.Approved))
+	result, _ := repo.FindByIdForUserId(model.ID, model.UserId)
+
+	if result.Status != string(enum.Approved) {
+		t.Errorf("Result status must be 'approved'")
+	}
 }
 
-func parseDateTime(dateString string) time.Time {
-	res, _ := time.Parse("2006-01-02 15:04:05", dateString)
+func TestCountReservedByDate(t *testing.T) {
+	db := getTestDb(t)
+
+	repo := NewCalendarRepository(db)
+
+	model := models.Calendar{
+		UserId: 20,
+		Date:   parseDate("2025-05-14"),
+		Status: string(enum.Reserved),
+	}
+	repo.Create(&model)
+
+	result, err := repo.CountReservedByDate(carbon.NewCarbon(parseDate("2025-05-14")))
+	if err != nil {
+		t.Errorf("Error count reserved date: %v", err.Error())
+	}
+
+	if result != 1 {
+		t.Errorf("Result status must be 1")
+	}
+}
+
+func TestSoftDeleteAndRestore(t *testing.T) {
+	db := getTestDb(t)
+
+	repo := NewCalendarRepository(db)
+
+	date := parseDate("2025-05-15")
+
+	model := models.Calendar{
+		UserId: 20,
+		Date:   date,
+		Status: string(enum.Reserved),
+	}
+	repo.Create(&model)
+	repo.SoftDelete(&model)
+
+	result, err := repo.FindDeletedByUserIdAndDate(20, date)
+	if err != nil {
+		t.Errorf("Error while find deleted by user id and date: %v", err.Error())
+	}
+
+	if !result.DeletedAt.Valid {
+		t.Errorf("DeletedAt must be valid")
+	}
+
+	repo.RestoreAndUpdate(&result, string(enum.Approved))
+
+	result2, _ := repo.FindDeletedByUserIdAndDate(20, date)
+	if result2.DeletedAt.Valid {
+		t.Errorf("DeletedAt must not be valid")
+	}
+}
+
+func parseDate(dateString string) time.Time {
+	res, _ := time.Parse("2006-01-02", dateString)
 	return res
 }
