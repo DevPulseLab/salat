@@ -4,7 +4,7 @@ import (
 	"github.com/DevPulseLab/salat/internal/config"
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/helper"
-	"github.com/DevPulseLab/salat/internal/service"
+	"github.com/DevPulseLab/salat/internal/services"
 	"github.com/sirupsen/logrus"
 	"github.com/uniplaces/carbon"
 	"gorm.io/gorm"
@@ -12,13 +12,13 @@ import (
 
 type CheckReservedRequests struct {
 	Config           *config.Config
-	MessagingService *service.MessagingService
+	MessagingService *services.MessagingService
 	CalendarRepo     *repositories.CalendarRepository
 	Logger           *logrus.Logger
 }
 
 func NewCheckReservedRequests(config *config.Config, db *gorm.DB, logger *logrus.Logger) *CheckReservedRequests {
-	ms := service.NewMessagingService(config.Slack.Token, db)
+	ms := services.NewMessagingService(config.Slack.Token, db)
 	calendarRepo := repositories.NewCalendarRepository(db, helper.NewDateHelper())
 	return &CheckReservedRequests{config, ms, calendarRepo, logger}
 }

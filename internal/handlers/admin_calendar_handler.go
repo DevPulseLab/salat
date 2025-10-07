@@ -10,7 +10,7 @@ import (
 	"github.com/DevPulseLab/salat/internal/enum"
 	"github.com/DevPulseLab/salat/internal/forms"
 	"github.com/DevPulseLab/salat/internal/helper"
-	"github.com/DevPulseLab/salat/internal/service"
+	"github.com/DevPulseLab/salat/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -23,7 +23,7 @@ type AdminCalendarHandler struct {
 	RequestHelper        *helper.RequestHelper
 	CalendarDtoBuilder   *builder.CalendarDtoBuilder
 	VisitStatsDtoBuilder *builder.VisitStatsDtoBuilder
-	MessagingService     *service.MessagingService
+	MessagingService     *services.MessagingService
 	Logger               *logrus.Logger
 }
 
@@ -35,7 +35,7 @@ func NewAdminCalendarHandler(db *gorm.DB, config *config.Config, log *logrus.Log
 	requestHelper := helper.NewRequestHelper()
 	calendarDtoBuilder := builder.NewCalendarDtoBuilder()
 	visitStatsDtoBuilder := builder.NewVisitStatsDtoBuilder()
-	ms := service.NewMessagingService(config.Slack.Token, db)
+	ms := services.NewMessagingService(config.Slack.Token, db)
 	return &AdminCalendarHandler{
 		calendarRepo,
 		closeIntervalRepo,

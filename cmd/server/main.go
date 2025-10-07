@@ -8,7 +8,7 @@ import (
 	"github.com/DevPulseLab/salat/internal/cron"
 	"github.com/DevPulseLab/salat/internal/db/dbconn"
 	"github.com/DevPulseLab/salat/internal/http"
-	"github.com/DevPulseLab/salat/internal/service"
+	"github.com/DevPulseLab/salat/internal/services"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,7 +21,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	loggerService := service.NewErrorLogger(config.ErrorLog.File, true, level)
+	loggerService := services.NewErrorLogger(config.ErrorLog.File, true, level)
 	logger := loggerService.GetDefaultLogger()
 
 	dbconn.OpenDB(config.Database.Dsn)

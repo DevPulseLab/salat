@@ -2,19 +2,19 @@ package task
 
 import (
 	"github.com/DevPulseLab/salat/internal/config"
-	"github.com/DevPulseLab/salat/internal/service"
+	"github.com/DevPulseLab/salat/internal/services"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type SendMessageToChanelTaks struct {
 	Config           *config.Config
-	MessagingService *service.MessagingService
+	MessagingService *services.MessagingService
 	Logger           *logrus.Logger
 }
 
 func NewSendMessageToChannelTask(config *config.Config, db *gorm.DB, logger *logrus.Logger) *SendMessageToChanelTaks {
-	ms := service.NewMessagingService(config.Slack.Token, db)
+	ms := services.NewMessagingService(config.Slack.Token, db)
 	return &SendMessageToChanelTaks{config, ms, logger}
 }
 

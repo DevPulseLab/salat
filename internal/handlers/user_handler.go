@@ -8,7 +8,7 @@ import (
 	"github.com/DevPulseLab/salat/internal/db/repositories"
 	"github.com/DevPulseLab/salat/internal/dto"
 	"github.com/DevPulseLab/salat/internal/forms"
-	"github.com/DevPulseLab/salat/internal/service"
+	"github.com/DevPulseLab/salat/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -16,13 +16,13 @@ import (
 
 type UserHandler struct {
 	UserRepo         *repositories.UserRepository
-	MessagingService *service.MessagingService
+	MessagingService *services.MessagingService
 	Logger           *logrus.Logger
 }
 
 func NewUserHandler(db *gorm.DB, config *config.Config, logger *logrus.Logger) *UserHandler {
 	userRepo := repositories.NewUserRepository(db)
-	ms := service.NewMessagingService(config.Slack.Token, db)
+	ms := services.NewMessagingService(config.Slack.Token, db)
 	return &UserHandler{userRepo, ms, logger}
 }
 
