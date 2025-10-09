@@ -6,3 +6,4 @@ frontend/.env
 bruno/environments
 log/*
 !log/.gitkeep
+coverage.out
