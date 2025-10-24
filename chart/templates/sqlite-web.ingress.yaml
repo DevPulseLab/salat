@@ -4,7 +4,7 @@ metadata:
   name: salat-ingress-sqlite-web
 spec:
   rules:
-    - host: {{ .Values.sqlite-web.ingress.host }}
+    - host: {{ .Values.sqlite_web.ingress.host | quote }}
       http:
         paths:
           - path: /

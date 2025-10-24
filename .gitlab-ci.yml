@@ -36,7 +36,7 @@ deploy_prod:
       --set slack.token=$helm_value_slack_token \
       --set slack.broadcast_channel=$helm_value_broadcast_channel \
       --set slack.user_admin_email=$helm_value_user_admin_email \
-      --set sqlite-web.ingress.host=$helm_value_sqlite_web_ingress_host \
+      --set sqlite_web.ingress.host=$helm_value_sqlite_web_ingress_host \
       --set salat.ingress.host=$helm_value_salat_ingress_host
   # rules:
   #   - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'

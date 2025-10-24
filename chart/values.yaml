@@ -1,0 +1,27 @@
+# This is the default values for salat. The Application won't work properly without changing the following values.
+# All values are required and need to be set before deploying the application.
+
+# SQLite Web Interface Ingress Settings. You are required to setup security for the interface yourself (e.g. via basic auth in your ingress controller, zero-trust, etc.)
+sqlite_web:
+  ingress:
+    host: "sqlite-web.example.com"
+
+# Salat Application Ingress Settings
+salat:
+  ingress:
+    host: "salat.example.com"
+
+# Image Settings for the application. These are probably going to be set in a more dynamic way via the CI/CD pipeline instead of being hardcoded here.
+image:
+  name: ""
+  tag: ""
+
+jwt:
+  # Secret to base JWT tokens on
+  secret: ""
+
+# Slack Integrations Settings
+slack:
+  token: ""
+  broadcast_channel: ""
+  user_admin_email: ""
