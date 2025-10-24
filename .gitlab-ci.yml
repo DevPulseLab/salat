@@ -29,7 +29,7 @@ deploy_prod:
     # Set the kubecontext to the desired cluster 
     - kubectl config use-context $AGENT_KUBECONTEXT
     - |
-      helm upgrade --install salat ./chart --namespace salat-gitlab --create-namespace \ 
+      helm upgrade --install salat ./chart --namespace salat-gitlab --create-namespace \
       --set image.name=$CI_REGISTRY_IMAGE \
       --set image.tag=$CI_COMMIT_SHORT_SHA \
       --set jwt.secret=$helm_value_jwt_secret \
