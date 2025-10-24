@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: salat-ingress-sqlite-web
+spec:
+  rules:
+    - host: salatbar-sqlite.secova.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sqlite-web
+                port:
+                  number: 8080

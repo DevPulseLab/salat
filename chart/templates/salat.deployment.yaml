@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: salat
+  labels:
+    app: salat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: salat
+  template:
+    metadata:
+      labels:
+        app: salat
+    spec:
+      imagePullSecrets:
+        - name: gitlab-pull-secret
+      containers:
+        - name: salat
+          image: '{{ printf "%s:%s" (.Values.image.name) (toString .Values.image.tag) }}'
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+          volumeMounts:
+            - name: salat-config
+              mountPath: /app/config/config.yaml
+              subPath: config.yaml
+            - name: salat-persistent-storage
+              mountPath: /app/db
+              subPath: gorm.db
+      volumes:
+        - name: salat-persistent-storage
+          persistentVolumeClaim:
+            claimName: salat-persistent-storage-pvc
+        - name: salat-config
+          configMap:
+            name: salat-configmap
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: salat-persistent-storage-pvc
+spec:
+  storageClassName: gp3-retain-sc
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

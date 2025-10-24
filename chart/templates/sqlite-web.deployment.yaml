@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sqlite-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sqlite-web
+  template:
+    metadata:
+      labels:
+        app: sqlite-web
+    spec:
+      containers:
+        - name: sqlite-web
+          image: ghcr.io/coleifer/sqlite-web:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+          volumeMounts:
+            - name: salat-persistent-storage
+              mountPath: /app/db
+              subPath: gorm.db
+          env:
+            - name: SQLITE_DATABASE
+              value: /app/db/gorm.db
+      volumes:
+        - name: salat-persistent-storage
+          persistentVolumeClaim:
+            claimName: salat-persistent-storage-pvc
