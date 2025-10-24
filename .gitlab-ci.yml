@@ -38,8 +38,9 @@ deploy_prod:
       --set slack.user_admin_email=$helm_value_user_admin_email \
       --set sqlite-web.ingress.host=$helm_value_sqlite_web_ingress_host \
       --set salat.ingress.host=$helm_value_salat_ingress_host
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+  # rules:
+  #   - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+  when: manual
   environment:
     name: prod/$CI_COMMIT_REF_SLUG
     kubernetes:
