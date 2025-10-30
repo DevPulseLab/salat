@@ -1,0 +1,49 @@
+stages:
+  - build
+  - test
+  - deploy
+
+include:
+  - component: $CI_SERVER_FQDN/cicd-catalog/docker/dind@1.1.0
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
+
+build_image:
+  stage: build
+  extends: .runDockerInDocker
+  script:
+    - docker build -f config/docker/Dockerfile -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+
+container_scanning:
+  variables:
+    CS_IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+
+deploy_prod:
+  stage: deploy
+  image: alpine/k8s:1.34.0
+  variables:
+    AGENT_KUBECONTEXT: devops/gitlab-system/flux-setup:general-tools
+  before_script:
+    - kubectl config get-contexts
+  script: 
+    # Set the kubecontext to the desired cluster 
+    - kubectl config use-context $AGENT_KUBECONTEXT
+    - |
+      helm upgrade --install salat ./chart --namespace salat-gitlab --create-namespace \
+      --set image.name=$CI_REGISTRY_IMAGE \
+      --set image.tag=$CI_COMMIT_SHORT_SHA \
+      --set jwt.secret=$helm_value_jwt_secret \
+      --set slack.token=$helm_value_slack_token \
+      --set slack.broadcast_channel=$helm_value_broadcast_channel \
+      --set slack.user_admin_email=$helm_value_user_admin_email \
+      --set sqlite_web.ingress.host=$helm_value_sqlite_web_ingress_host \
+      --set salat.ingress.host=$helm_value_salat_ingress_host
+  # rules:
+  #   - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+  when: manual
+  environment:
+    name: prod/$CI_COMMIT_REF_SLUG
+    kubernetes:
+      agent: $AGENT_KUBECONTEXT
+      dashboard:
+        namespace: salat-gitlab

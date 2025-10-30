@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: salat-configmap
+data:
+  config.yaml: |
+    database:
+      dsn: "/app/db/gorm.db?cache=shared&_foreign_keys=on"
+
+    jwt:
+      secret: {{ .Values.jwt.secret }}
+
+    errorLog:
+      file: log/errors.log
+      level: error
+
+    slack:
+      token: {{ .Values.slack.token }}
+      broadcast_channel: {{ .Values.slack.broadcast_channel }}
+      user_admin_email: {{ .Values.slack.user_admin_email }}
