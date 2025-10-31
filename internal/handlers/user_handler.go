@@ -27,7 +27,7 @@ func NewUserHandler(db *gorm.DB, config *config.Config, logger *logrus.Logger) *
 }
 
 func (handler *UserHandler) GetUserList(ctx *gin.Context) {
-	users := handler.UserRepo.GetAllUsers()
+	users := handler.UserRepo.GetAllActiveUsers()
 
 	userDtos := []dto.User{}
 	for _, user := range users {

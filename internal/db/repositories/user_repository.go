@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/DevPulseLab/salat/internal/db/models"
+	"github.com/uniplaces/carbon"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -45,10 +46,20 @@ func (repo *UserRepository) AuthenticateUser(username, password string) (string,
 	return user.Role, bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 }
 
-func (repo *UserRepository) GetAllUsers() []models.User {
+func (repo *UserRepository) GetAllActiveUsers() []models.User {
 	var users []models.User
 
-	repo.DB.Order("username").Find(&users)
+	nowMinus2Weeks := carbon.Now().SubDays(14)
+
+	repo.DB.
+		Model(&models.User{}).
+		Distinct("users.*").
+		Joins("JOIN calendars ON users.id = calendars.user_id").
+		Where("calendars.deleted_at IS NULL").
+		Where("users.deleted_at IS NULL").
+		Where("calendars.date >= ?", nowMinus2Weeks.Time.Format("2006-01-02")).
+		Order("username").
+		Find(&users)
 
 	return users
 }
