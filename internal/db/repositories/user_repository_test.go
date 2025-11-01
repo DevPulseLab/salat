@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"testing"
+	"time"
 
 	"github.com/DevPulseLab/salat/internal/db/models"
 	"github.com/DevPulseLab/salat/internal/db/repositories/testutils"
@@ -51,21 +52,30 @@ func TestAuthenticateUser(t *testing.T) {
 	}
 }
 
-func TestGetAllUsers(t *testing.T) {
-	db := testutils.GetTestDb(t, &models.User{})
+func TestGetAllActiveUsers(t *testing.T) {
+	db := testutils.GetTestDb(t, &models.User{}, &models.Calendar{})
 
-	repo := NewUserRepository(db)
+	userRepo := NewUserRepository(db)
+	calendarRepo := NewCalendarRepository(db)
 
-	results := repo.GetAllUsers()
+	results := userRepo.GetAllActiveUsers()
 	if len(results) != 0 {
 		t.Fatalf("wrong number of users: %d", len(results))
 	}
 
-	repo.RegisterUser("testuser1", "password", "admin")
-	repo.RegisterUser("testuser2", "password", "admin")
+	userRepo.RegisterUser("testuser1", "password", "admin")
+	userRepo.RegisterUser("testuser2", "password", "admin")
 
-	results = repo.GetAllUsers()
-	if len(results) != 2 {
+	testuser1Id, _ := userRepo.GetIdByUsername("testuser1")
+
+	calendarRepo.Create(&models.Calendar{
+		UserId: testuser1Id,
+		Date:   time.Now(),
+		Status: string(enum.Approved),
+	})
+
+	results = userRepo.GetAllActiveUsers()
+	if len(results) != 1 {
 		t.Fatalf("wrong number of users: %d", len(results))
 	}
 }
