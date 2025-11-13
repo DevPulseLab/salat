@@ -31,12 +31,14 @@ provide('config', {
       rejected: 'rejected',
       approved: 'approved',
       reserved: 'reserved',
+      cancelled: 'cancelled',
     },
     statusText: {
       noentry: '---',
       rejected: 'Abgelehnt',
       approved: 'Genehmigt',
       reserved: 'Erwartet',
+      cancelled: 'Abgesagt',
     }
   }
 })

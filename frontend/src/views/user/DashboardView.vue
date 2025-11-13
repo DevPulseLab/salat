@@ -60,6 +60,8 @@ const getTooltipMessage = (classNames) => {
     return 'Dein Eintrag wurde abgelehnt. Trag dich nächstes Mal rechtzeitig ein.';
   } else if (classNames.includes('event-reserved')) {
     return 'Dein Eintrag wurde reserviert. Wir schauen, ob es genug Salat für alle gibt. Trag dich nächstes Mal rechtzeitig ein.';
+  } else if (classNames.includes('event-cancelled')) {
+    return 'Dein Eintrag wurde abgesagt.';
   }
   return 'Keine Information verfügbar.';
 }
@@ -359,6 +361,10 @@ onMounted(async () => {
 
 .event-rejected {
   background-color: #aa2f2f;
+}
+
+.event-cancelled {
+  background-color: #4a5565;
 }
 
 .event-reserved {
