@@ -40,5 +40,14 @@
         Der Salat wurde leider abgelehnt.
       </p>
     </div>
+
+    <div class="mb-4 section flex items-center space-x-4 bg-white">
+      <div class="inline-block p-4 event-cancelled">
+        <img src="@/assets/salat.svg" alt="salat icon">
+      </div>
+      <p>
+        Der Salat wurde leider abgesagt.
+      </p>
+    </div>
   </div>
 </template>

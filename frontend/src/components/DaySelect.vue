@@ -40,13 +40,15 @@ const changeDayStatus = () => {
 const options = [
   {"status": appConfig.calendar.statusText.rejected, "value": appConfig.calendar.status.rejected},
   {"status": appConfig.calendar.statusText.reserved, "value": appConfig.calendar.status.reserved},
-  {"status": appConfig.calendar.statusText.approved, "value": appConfig.calendar.status.approved}
+  {"status": appConfig.calendar.statusText.approved, "value": appConfig.calendar.status.approved},
+  {"status": appConfig.calendar.statusText.cancelled, "value": appConfig.calendar.status.cancelled}
 ]
 
 const classForStatus = () => {
   return {
     'text-green-700': status.value === appConfig.calendar.status.approved,
     'text-red-700': status.value === appConfig.calendar.status.rejected,
+    'text-slate-600': status.value === appConfig.calendar.status.cancelled,
     'text-amber-700': status.value === appConfig.calendar.status.reserved,
   }
 }
