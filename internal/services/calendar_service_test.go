@@ -183,3 +183,50 @@ func parseDateTime(dateString string) time.Time {
 	res, _ := time.ParseInLocation("2006-01-02 15:04:05", dateString, time.Local)
 	return res
 }
+
+func TestAddCalendarEntry_Restore(t *testing.T) {
+	carbon.Freeze(time.Date(2025, time.May, 1, 0, 0, 0, 0, time.Local))
+	defer carbon.UnFreeze()
+
+	db := getTestDb(t)
+	calendarRepo := repositories.NewCalendarRepository(db)
+	sut := NewCalendarService(calendarRepo, helper.NewDateHelper())
+
+	user := models.User{Model: gorm.Model{ID: 100}}
+	date := parseDate("2025-05-05")
+
+	// Create and soft-delete an entry
+	entry := models.Calendar{
+		UserId: user.ID,
+		Date:   date,
+		Status: string(enum.Rejected),
+	}
+	db.Create(&entry)
+	db.Delete(&entry)
+
+	// Verify it's deleted
+	var count int64
+	db.Unscoped().Model(&models.Calendar{}).Where("id = ? AND deleted_at IS NOT NULL", entry.ID).Count(&count)
+	if count != 1 {
+		t.Fatalf("Failed to setup test: entry should be soft deleted")
+	}
+
+	// Call AddCalendarEntries
+	added, errors := sut.AddCalendarEntries(&user, date, date, []dto.CloseInterval{})
+	if len(errors) > 0 {
+		t.Fatalf("Unexpected errors: %v", errors)
+	}
+	if len(added) != 1 {
+		t.Fatalf("Expected 1 added entry, got %d", len(added))
+	}
+
+	// Verify it's restored and updated
+	var restored models.Calendar
+	db.Unscoped().First(&restored, entry.ID)
+	if restored.DeletedAt.Valid {
+		t.Errorf("Entry should be restored (DeletedAt should be null/invalid)")
+	}
+	if restored.Status != string(enum.Approved) {
+		t.Errorf("Expected status Approved, got %s", restored.Status)
+	}
+}

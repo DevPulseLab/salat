@@ -53,12 +53,6 @@ func (repo *CalendarRepository) CountReservedByDate(date *carbon.Carbon) (int64,
 	return count, result.Error
 }
 
-func (repo *CalendarRepository) FindDeletedByUserIdAndDate(userID uint, date time.Time) (models.Calendar, error) {
-	var calendarEntry models.Calendar
-	result := repo.DB.Unscoped().Where("user_id = ? AND date = ? AND deleted_at IS NOT NULL", userID, date).First(&calendarEntry)
-	return calendarEntry, result.Error
-}
-
 func (repo *CalendarRepository) RestoreAndUpdate(calendarEntry *models.Calendar, status string) error {
 	return repo.DB.Unscoped().Model(&calendarEntry).Updates(map[string]interface{}{
 		"deleted_at": nil,
@@ -80,4 +74,20 @@ func (repo *CalendarRepository) FindByDateRange(startDate, endDate time.Time) ([
 	var calendars []models.Calendar
 	result := repo.DB.Where("DATE(date) >= ? AND DATE(date) <= ?", startDate.Format("2006-01-02"), endDate.Format("2006-01-02")).Find(&calendars)
 	return calendars, result.Error
+}
+
+func (repo *CalendarRepository) FindDeletedByUserIdAndDateRange(userID uint, startDate, endDate time.Time) ([]models.Calendar, error) {
+	var calendars []models.Calendar
+	result := repo.DB.Unscoped().
+		Where("user_id = ? AND date >= ? AND date <= ? AND deleted_at IS NOT NULL",
+			userID, startDate, endDate).
+		Find(&calendars)
+	return calendars, result.Error
+}
+
+func (repo *CalendarRepository) BatchCreate(entries []models.Calendar) error {
+	if len(entries) == 0 {
+		return nil
+	}
+	return repo.DB.Create(&entries).Error
 }

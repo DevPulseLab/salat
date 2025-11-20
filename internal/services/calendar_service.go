@@ -23,8 +23,20 @@ func NewCalendarService(repo *repositories.CalendarRepository, dh *helper.DateHe
 func (s *CalendarService) AddCalendarEntries(user *models.User, startDate, endDate time.Time, closeIntervals []dto.CloseInterval) ([]models.Calendar, []error) {
 	var errors []error
 	var addedDays []models.Calendar
+	var newEntries []models.Calendar
 
 	currDate := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())
+	endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 0, 0, 0, 0, endDate.Location())
+
+	deletedEntries, err := s.repo.FindDeletedByUserIdAndDateRange(user.ID, currDate, endDate)
+	if err != nil {
+		return nil, []error{err}
+	}
+
+	deletedEntriesMap := make(map[string]models.Calendar)
+	for _, entry := range deletedEntries {
+		deletedEntriesMap[entry.Date.Format("2006-01-02")] = entry
+	}
 
 	for endDate.Sub(currDate).Hours() >= 0 {
 		if s.dateHelper.IsWeekend(currDate) || s.dateHelper.IsDateInCloseIntervals(currDate, closeIntervals) {
@@ -33,8 +45,9 @@ func (s *CalendarService) AddCalendarEntries(user *models.User, startDate, endDa
 		}
 
 		status := s.determineStatus(user, currDate)
+		dateStr := currDate.Format("2006-01-02")
 
-		if deletedEntry, err := s.repo.FindDeletedByUserIdAndDate(user.ID, currDate); err == nil {
+		if deletedEntry, exists := deletedEntriesMap[dateStr]; exists {
 			if err := s.repo.RestoreAndUpdate(&deletedEntry, status); err != nil {
 				errors = append(errors, err)
 			} else {
@@ -46,19 +59,24 @@ func (s *CalendarService) AddCalendarEntries(user *models.User, startDate, endDa
 				Date:   currDate,
 				Status: status,
 			}
-			if err := s.repo.Create(&calendarEntry); err != nil {
-				errors = append(errors, err)
-			} else {
-				addedDays = append(addedDays, calendarEntry)
-			}
+			newEntries = append(newEntries, calendarEntry)
 		}
 
 		currDate = currDate.AddDate(0, 0, 1)
 	}
 
+	if len(newEntries) > 0 {
+		if err := s.repo.BatchCreate(newEntries); err != nil {
+			errors = append(errors, err)
+		} else {
+			addedDays = append(addedDays, newEntries...)
+		}
+	}
+
 	if len(errors) > 0 {
 		return addedDays, errors
 	}
+
 	return addedDays, nil
 }
 

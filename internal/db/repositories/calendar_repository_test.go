@@ -227,35 +227,55 @@ func TestCountReservedByDate(t *testing.T) {
 	}
 }
 
-func TestSoftDeleteAndRestore(t *testing.T) {
+func TestFindDeletedByUserIdAndDateRange(t *testing.T) {
 	db := testutils.GetTestDb(t, &models.Calendar{})
-
 	repo := NewCalendarRepository(db)
 
-	date := parseDate("2025-05-15")
+	// Active entry (should not be found)
+	db.Create(&models.Calendar{
+		UserId: 10,
+		Date:   parseDate("2025-05-10"),
+		Status: string(enum.Approved),
+	})
 
-	model := models.Calendar{
-		UserId: 20,
-		Date:   date,
-		Status: string(enum.Reserved),
+	// Soft-deleted entry within range (should be found)
+	deletedInRange := models.Calendar{
+		UserId: 10,
+		Date:   parseDate("2025-05-12"),
+		Status: string(enum.Approved),
 	}
-	repo.Create(&model)
-	repo.SoftDelete(&model)
+	db.Create(&deletedInRange)
+	repo.SoftDelete(&deletedInRange)
 
-	result, err := repo.FindDeletedByUserIdAndDate(20, date)
+	// Soft-deleted entry outside range (should not be found)
+	deletedOutsideRange := models.Calendar{
+		UserId: 10,
+		Date:   parseDate("2025-05-20"),
+		Status: string(enum.Approved),
+	}
+	db.Create(&deletedOutsideRange)
+	repo.SoftDelete(&deletedOutsideRange)
+
+	// Soft-deleted entry for another user (should not be found)
+	deletedOtherUser := models.Calendar{
+		UserId: 12,
+		Date:   parseDate("2025-05-12"),
+		Status: string(enum.Approved),
+	}
+	db.Create(&deletedOtherUser)
+	repo.SoftDelete(&deletedOtherUser)
+
+	results, err := repo.FindDeletedByUserIdAndDateRange(10, parseDate("2025-05-10"), parseDate("2025-05-15"))
 	if err != nil {
-		t.Errorf("Error while find deleted by user id and date: %v", err.Error())
+		t.Errorf("Unexpected error: %v", err)
 	}
 
-	if !result.DeletedAt.Valid {
-		t.Errorf("DeletedAt must be valid")
+	if len(results) != 1 {
+		t.Errorf("Expected 1 result, got %d", len(results))
 	}
 
-	repo.RestoreAndUpdate(&result, string(enum.Approved))
-
-	result2, _ := repo.FindDeletedByUserIdAndDate(20, date)
-	if result2.DeletedAt.Valid {
-		t.Errorf("DeletedAt must not be valid")
+	if len(results) > 0 && results[0].ID != deletedInRange.ID {
+		t.Errorf("Expected found entry ID to be %d, got %d", deletedInRange.ID, results[0].ID)
 	}
 }
 
