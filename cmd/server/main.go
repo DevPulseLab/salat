@@ -13,7 +13,11 @@ import (
 )
 
 func main() {
-	config := config.New()
+	config, err := config.Load()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
+		os.Exit(1)
+	}
 
 	level, err := logrus.ParseLevel(config.ErrorLog.Level)
 	if err != nil {

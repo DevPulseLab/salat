@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -25,27 +24,24 @@ type Config struct {
 	} `yaml:"slack"`
 }
 
-func New() *Config {
+func Load() (*Config, error) {
 	var cfg Config
-	readFile(&cfg)
-	return &cfg
+	if err := readFile(&cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
 }
 
-func readFile(cfg *Config) {
+func readFile(cfg *Config) error {
 	f, err := os.Open("config/config.yaml")
 	if err != nil {
-		processError(err)
+		return err
 	}
 	defer f.Close()
 
 	decoder := yaml.NewDecoder(f)
-	err = decoder.Decode(cfg)
-	if err != nil {
-		processError(err)
+	if err := decoder.Decode(cfg); err != nil {
+		return err
 	}
-}
-
-func processError(err error) {
-	fmt.Println(err)
-	os.Exit(2)
+	return nil
 }

@@ -65,7 +65,7 @@ func (handler *AuthHandler) Login(ctx *gin.Context) {
 	jwtKey := []byte(handler.Config.Jwt.Secret)
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Failed to sign token: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return
 	}
