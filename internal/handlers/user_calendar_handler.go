@@ -34,7 +34,16 @@ func NewUserCalendarHandler(db *gorm.DB) *UserCalendarHandler {
 	requestHelper := helper.NewRequestHelper()
 	calendarDtoBuilder := builder.NewCalendarDtoBuilder()
 	closeIntervalDtoBuilder := builder.NewCloseIntervalDtoBuilder()
-	return &UserCalendarHandler{calendarRepo, calendarService, userRepo, closeIntervalsRepo, dateHelper, requestHelper, calendarDtoBuilder, closeIntervalDtoBuilder}
+	return &UserCalendarHandler{
+		calendarRepo,
+		calendarService,
+		userRepo,
+		closeIntervalsRepo,
+		dateHelper,
+		requestHelper,
+		calendarDtoBuilder,
+		closeIntervalDtoBuilder,
+	}
 }
 
 func (handler *UserCalendarHandler) Add(ctx *gin.Context) {

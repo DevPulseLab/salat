@@ -3,56 +3,35 @@ package http
 import (
 	"net/http"
 
-	"github.com/DevPulseLab/salat/internal/config"
-	"github.com/DevPulseLab/salat/internal/db/models"
-	"github.com/DevPulseLab/salat/internal/handlers"
+	"github.com/DevPulseLab/salat/internal/http/routes"
 	"github.com/DevPulseLab/salat/internal/middlewares"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
-func InitializeRoutes(router *gin.Engine, db *gorm.DB, config *config.Config, logger *logrus.Logger) {
-	jwtMiddleware := middlewares.NewJwtMiddleware(config)
-	roleMiddleware := middlewares.NewRoleMiddleware()
-	currentUserMiddleware := middlewares.NewCurrentUserMiddleware(db)
-	authHandler := handlers.NewAuthHandler(db, config)
-	userHandler := handlers.NewUserHandler(db, config, logger)
-	userCalendarHandler := handlers.NewUserCalendarHandler(db)
-	adminCalendarHandler := handlers.NewAdminCalendarHandler(db, config, logger)
-	realDayStatsHandler := handlers.NewRealDayStatsHandler(db)
-
+func InitializeRoutes(
+	router *gin.Engine,
+	authRoutes *routes.AuthRoutes,
+	userRoutes *routes.UserRoutes,
+	userCalendarRoutes *routes.UserCalendarRoutes,
+	adminCalendarRoutes *routes.AdminCalendarRoutes,
+	realDayStatsRoutes *routes.RealDayStatsRoutes,
+) {
 	router.Use(middlewares.CORSMiddleware())
 
 	router.StaticFile("/", "public/index.html")
 	router.Static("/public", "public")
 	router.Static("/assets", "public/assets")
 
-	router.GET("/api/ping", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, map[string]string{"ping": "pong"})
-	})
+	api := router.Group("/api")
+	{
+		api.GET("/ping", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, map[string]string{"ping": "pong"})
+		})
 
-	router.POST("/api/register/cloudflare", authHandler.CloudflareSSO)
-	router.POST("/api/register", authHandler.Register)
-	router.POST("/api/login", authHandler.Login)
-
-	router.GET("/api/users/me", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), currentUserMiddleware.Process, userHandler.GetCurrentUserInfo)
-	router.GET("/api/users/list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userHandler.GetUserList)
-	router.POST("/api/users/set-penalty-card", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), userHandler.SetPenaltyCard)
-	router.GET("/api/user/calendar/all-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.AllUserList)
-
-	router.POST("/api/user/calendar/add", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), currentUserMiddleware.Process, userCalendarHandler.Add)
-	router.GET("/api/user/calendar/current-user-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.CurrentUserList)
-	router.POST("/api/user/calendar/remove-for-current-user", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser), userCalendarHandler.RemoveEntryForCurrentUser)
-	router.PUT("/api/user/calendar/update-calendar-entry-status", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.ChangeEntryStatus)
-
-	router.POST("/api/stats/save-number-of-plates", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), realDayStatsHandler.SaveNumberOfPlatesForDay)
-	router.GET("/api/stats/get-number-of-plates", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), realDayStatsHandler.GetNumberOfPlatesForDay)
-	router.POST("/api/stats/increment-number-of-plates", realDayStatsHandler.IncrementNumberOfPlatesForDay)
-
-	router.POST("/api/admin/calendar/add-close-interval", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.AddCloseDateInterval)
-	router.POST("/api/admin/calendar/remove-close-interval", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.RemoveCloseDateInterval)
-	router.GET("/api/admin/calendar/get-visit-stats-list", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.GetVisitStatsList)
-	router.POST("/api/admin/calendar/toggle-visit", jwtMiddleware.Process, roleMiddleware.Process(models.RoleAdmin), adminCalendarHandler.ToggleVisit)
-	router.GET("/api/user/calendar/get-close-intervals", jwtMiddleware.Process, roleMiddleware.Process(models.RoleUser, models.RoleAdmin), userCalendarHandler.GetCloseDateInterval)
+		authRoutes.Setup(api)
+		userRoutes.Setup(api)
+		userCalendarRoutes.Setup(api)
+		realDayStatsRoutes.Setup(api)
+		adminCalendarRoutes.Setup(api)
+	}
 }

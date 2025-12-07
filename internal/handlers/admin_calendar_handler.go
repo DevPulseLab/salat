@@ -43,7 +43,8 @@ func NewAdminCalendarHandler(db *gorm.DB, config *config.Config, log *logrus.Log
 		calendarDtoBuilder,
 		visitStatsDtoBuilder,
 		ms,
-		log}
+		log,
+	}
 }
 
 func (handler *AdminCalendarHandler) AllUserList(ctx *gin.Context) {
