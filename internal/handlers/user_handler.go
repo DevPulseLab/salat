@@ -20,7 +20,11 @@ type UserHandler struct {
 	Logger           *logrus.Logger
 }
 
-func NewUserHandler(db *gorm.DB, config *config.Config, logger *logrus.Logger) *UserHandler {
+func NewUserHandler(
+	db *gorm.DB,
+	config *config.Config,
+	logger *logrus.Logger,
+) *UserHandler {
 	userRepo := repositories.NewUserRepository(db)
 	ms := services.NewMessagingService(config.Slack.Token, db)
 	return &UserHandler{userRepo, ms, logger}
