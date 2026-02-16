@@ -46,6 +46,7 @@ const useUsersService = () => {
 
         return entries
     }
+
     const fetchNumberOfPlates = async (statsDay) => {
         try {
             const response = await http.get('/api/stats/get-number-of-plates', {
@@ -54,6 +55,18 @@ const useUsersService = () => {
             return response.data.numberOfPlates;
         } catch (error) {
             console.error('Can not become a number of plates', error);
+            return 0;
+        }
+    }
+
+    const fetchNumberOfGuests = async (statsDay) => {
+        try {
+            const response = await http.get('/api/stats/get-number-of-guests', {
+                params: {stats_date: statsDay}
+            });
+            return response.data.numberOfGuests;
+        } catch (error) {
+            console.error('Can not become a number of guests', error);
             return 0;
         }
     }
@@ -70,6 +83,20 @@ const useUsersService = () => {
             return false;
         }
     }
+
+    const saveGuestNumber = async (statsDay, numberOfGuests) => {
+        try {
+            const response = await http.post('/api/stats/save-number-of-guests', {
+                statsDay,
+                numberOfGuests
+            });
+            return response.status === 200;
+        } catch (error) {
+            console.error('Error saving guests number:', error);
+            return false;
+        }
+    }
+
     const addAbsence = async (startDate, endDate) => {
         try {
             const response = await http.post('/api/admin/calendar/add-close-interval', {
@@ -152,7 +179,9 @@ const useUsersService = () => {
         fetchUsers,
         fetchUserEntries,
         fetchNumberOfPlates,
+        fetchNumberOfGuests,
         savePlatesNumber,
+        saveGuestNumber,
         addAbsence,
         fetchAbsences,
         removeAbsence,

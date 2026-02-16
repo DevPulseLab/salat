@@ -23,6 +23,7 @@ const editMode = ref(false)
 const checkedUsers = ref({});
 
 const platesNumbers = ref({});
+const guestsNumbers = ref({});
 
 const startDate = ref(moment().startOf('week'))
 const endDate = ref(moment().endOf('week'))
@@ -62,6 +63,7 @@ const updateDateRange = async (start, end) => {
   for (let day of weekdays) {
     const statsDay = day.format(appConfig.DATE_FORMAT);
     platesNumbers.value[statsDay] = await usersService.fetchNumberOfPlates(statsDay);
+    guestNumbers.value[statsDay] = await usersService.fetchNumberOfGuests(statsDay);
   }
 
   await loadTable()
@@ -119,7 +121,6 @@ const countCheckedCheckboxesPerDay = (day) => {
   return count;
 };
 
-
 const savePlatesNumber = async (day) => {
   try {
     const statsDay = day.format(appConfig.DATETIME_FORMAT);
@@ -135,6 +136,24 @@ const savePlatesNumber = async (day) => {
   } catch (error) {
     console.error('Fehler beim Speichern der Telleranzahl:', error);
     toast.add({severity: 'error', summary: 'Beim Speichern der Telleranzahl ist ein Fehler aufgetreten', life: 2000});
+  }
+}
+
+const saveGuestNumber = async (day) => {
+  try {
+    const statsDay = day.format(appConfig.DATETIME_FORMAT);
+    const numberOfGuests = parseInt(guestsNumbers.value[day.format(appConfig.DATE_FORMAT)], 10);
+
+    const success = await usersService.saveGuestNumber(statsDay, numberOfGuests);
+
+    if (success) {
+      toast.add({severity: 'success', summary: 'Anzahl der Gäste wurde gespeichert!', life: 2000});
+    } else {
+      toast.add({severity: 'error', summary: 'Anzahl der Gäste konnte nicht gespeichert werden.', life: 2000});
+    }
+  } catch (error) {
+    console.error('Fehler beim Speichern der Gäste:', error);
+    toast.add({severity: 'error', summary: 'Beim Speichern der Gäste ist ein Fehler aufgetreten', life: 2000});
   }
 }
 
@@ -276,6 +295,22 @@ onMounted(async () => {
               :placeholder="platesNumbers[day.format(appConfig.DATE_FORMAT)] || 0"
               v-model="platesNumbers[day.format(appConfig.DATE_FORMAT)]">
           <button class="total-people-button" @click="savePlatesNumber(day)">Ok</button>
+        </div>
+      </td>
+    </tr>
+    <tr class="statistics border-t font-bold">
+      <td class="px-2 py-1 w-[200px] border-l" style="background: #fdfdfd8a">Gäste (wird zu den tatsächlichen Tellern addiert):
+      </td>
+      <td
+          class="px-2 py-1 w-[200px] border-l border-r text-center" style="background: #fdfdfd8a"
+          v-for="day in moment.range(week.clone().startOf('week'), week.clone().endOf('week').subtract(2, 'day')).by('day')"
+      >
+        <div class="flex-wrapper">
+          <input
+              class="total-people-input"
+              :placeholder="guestsNumbers[day.format(appConfig.DATE_FORMAT)] || 0"
+              v-model="guestsNumbers[day.format(appConfig.DATE_FORMAT)]">
+          <button class="total-people-button" @click="saveGuestNumber(day)">Ok</button>
         </div>
       </td>
     </tr>

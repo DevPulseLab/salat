@@ -10,6 +10,7 @@ import (
 
 func InitializeRoutes(
 	router *gin.Engine,
+	jwtMiddleware *middlewares.JwtMiddleware,
 	authRoutes *routes.AuthRoutes,
 	userRoutes *routes.UserRoutes,
 	userCalendarRoutes *routes.UserCalendarRoutes,
@@ -29,6 +30,9 @@ func InitializeRoutes(
 		})
 
 		authRoutes.Setup(api)
+
+		api.Use(jwtMiddleware.Process)
+
 		userRoutes.Setup(api)
 		userCalendarRoutes.Setup(api)
 		realDayStatsRoutes.Setup(api)
