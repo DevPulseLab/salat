@@ -31,5 +31,8 @@ func (r *RealDayStatsRoutes) Setup(rg *gin.RouterGroup) {
 		stats.POST("/save-number-of-plates", r.JwtMiddleware.Process, r.RoleMiddleware.Process(models.RoleAdmin), r.RealDayStatsHandler.SaveNumberOfPlatesForDay)
 		stats.GET("/get-number-of-plates", r.JwtMiddleware.Process, r.RoleMiddleware.Process(models.RoleAdmin), r.RealDayStatsHandler.GetNumberOfPlatesForDay)
 		stats.POST("/increment-number-of-plates", r.RealDayStatsHandler.IncrementNumberOfPlatesForDay)
+
+		stats.POST("/save-number-of-guests", r.JwtMiddleware.Process, r.RoleMiddleware.Process(models.RoleAdmin), r.RealDayStatsHandler.SaveNumberOfGuestsForDay)
+		stats.GET("/get-number-of-guests", r.JwtMiddleware.Process, r.RoleMiddleware.Process(models.RoleAdmin), r.RealDayStatsHandler.GetNumberOfGuestsForDay)
 	}
 }
