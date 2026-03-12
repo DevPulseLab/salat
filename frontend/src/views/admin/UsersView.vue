@@ -63,7 +63,7 @@ const updateDateRange = async (start, end) => {
   for (let day of weekdays) {
     const statsDay = day.format(appConfig.DATE_FORMAT);
     platesNumbers.value[statsDay] = await usersService.fetchNumberOfPlates(statsDay);
-    guestNumbers.value[statsDay] = await usersService.fetchNumberOfGuests(statsDay);
+    guestsNumbers.value[statsDay] = await usersService.fetchNumberOfGuests(statsDay);
   }
 
   await loadTable()
@@ -200,6 +200,7 @@ onMounted(async () => {
     for (let day of weekdays) {
       const statsDay = day.format(appConfig.DATE_FORMAT);
       platesNumbers.value[statsDay] = await usersService.fetchNumberOfPlates(statsDay);
+      guestsNumbers.value[statsDay] = await usersService.fetchNumberOfGuests(statsDay);
     }
     await loadTable();
   } catch (error) {
@@ -234,7 +235,6 @@ onMounted(async () => {
   <div class="flex justify-center my-4">
     <InputText v-model="searchQuery" placeholder="Nutzer suchen..." class="w-1/3"/>
   </div>
-
 
   <table class="mx-auto table-auto mb-4" v-if="!loading" v-for="week in dateRange.by('weeks')">
     <thead>
