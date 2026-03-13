@@ -30,6 +30,7 @@ func Run(config *config.Config, logger *logrus.Logger) error {
 	router := gin.Default()
 	InitializeRoutes(
 		router,
+		jwtMiddleware,
 		authRoutes,
 		userRoutes,
 		userCalendarRoutes,

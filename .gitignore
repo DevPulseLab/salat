@@ -7,3 +7,5 @@ bruno/environments
 log/*
 !log/.gitkeep
 coverage.out
+.DS_Store
+cmd/server/__debug_bin*

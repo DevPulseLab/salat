@@ -13,11 +13,13 @@ import (
 
 type RealDayStatsHandler struct {
 	RealDayStatsRepo *repositories.RealDayStatsRepository
+	GuestStatsRepo   *repositories.GuestStatsRepository
 }
 
 func NewRealDayStatsHandler(db *gorm.DB) *RealDayStatsHandler {
 	realDayStatsRepo := repositories.NewRealDayStatsRepository(db)
-	return &RealDayStatsHandler{realDayStatsRepo}
+	guestStatsRepo := repositories.NewGuestStatsRepository(db)
+	return &RealDayStatsHandler{realDayStatsRepo, guestStatsRepo}
 }
 
 func (handler *RealDayStatsHandler) IncrementNumberOfPlatesForDay(ctx *gin.Context) {
@@ -58,6 +60,31 @@ func (handler *RealDayStatsHandler) GetNumberOfPlatesForDay(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"numberOfPlates": handler.RealDayStatsRepo.GetStatsForDay(statsDay)})
+}
+
+func (handler *RealDayStatsHandler) SaveNumberOfGuestsForDay(ctx *gin.Context) {
+	var form forms.SaveNumberOfGuestsForDayForm
+	if err := ctx.ShouldBindJSON(&form); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if handler.GuestStatsRepo.SaveStatsForDay(form.StatsDay, form.NumberOfGuests) {
+		ctx.JSON(http.StatusOK, gin.H{"message": "Day stats data saved", "success": true})
+		return
+	}
+
+	ctx.JSON(http.StatusBadRequest, gin.H{"message": "Day stats not saved", "success": false})
+}
+
+func (handler *RealDayStatsHandler) GetNumberOfGuestsForDay(ctx *gin.Context) {
+	statsDay, err := getStatsDateFromRequest(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid stats_date format. Use YYYY-MM-DD."})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"numberOfGuests": handler.GuestStatsRepo.GetStatsForDay(statsDay)})
 }
 
 func getStatsDateFromRequest(ctx *gin.Context) (time.Time, error) {
